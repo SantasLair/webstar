@@ -1,0 +1,35 @@
+# Godot
+.godot/
+.import/
+export.cfg
+export_presets.cfg
+*.tmp
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+
+# Node.js (for legacy server)
+node_modules/
+npm-debug.log*
+.env
+
+# IDE
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+*.temp
+*.bak
