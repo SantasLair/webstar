@@ -7,7 +7,7 @@ A Godot 4 networking plugin for creating multiplayer games with WebRTC star topo
 ## 🚀 Quick Start
 
 ### 1. Add the Plugin
-Copy the `webstar/` folder to your Godot project's `addons/` directory.
+Copy the `webstar-test-client/addons/webstar/` folder to your Godot project's `addons/` directory.
 
 ### 2. Start the Server
 ```bash
@@ -28,9 +28,9 @@ if success:
 
 ```
 webstar/
-├── 📁 webstar/                    # Core plugin source
 ├── 📁 webstar-server-dotnet/      # .NET 9 server (recommended)
-├── 📁 webstar-test-client/        # Godot test project
+├── 📁 webstar-test-client/        # Addon development environment
+│   └── 📁 addons/webstar/         # The WebStar addon (source of truth)
 └── 📄 README.md                   # This file
 ```
 
@@ -44,8 +44,8 @@ webstar/
 
 ## 🛠️ Components
 
-### Godot Plugin (`webstar/`)
-The core networking plugin with all WebStar functionality.
+### Godot Plugin (`webstar-test-client/addons/webstar/`)
+The WebStar networking addon with all functionality.
 
 ### .NET Server (`webstar-server-dotnet/`)
 High-performance WebSocket signaling server built with .NET 9.
@@ -70,7 +70,7 @@ Example Godot project showing WebStar usage.
 ## 📚 Documentation
 
 See individual component READMEs:
-- [Plugin Documentation](webstar/README.md)
+- [Addon Documentation](webstar-test-client/addons/webstar/README.md)
 - [Server Documentation](webstar-server-dotnet/README.md)
 
 ## 🤝 Contributing

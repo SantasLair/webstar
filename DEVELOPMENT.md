@@ -9,7 +9,7 @@
 
 ## Known Working Components
 - .NET 9 WebSocket server (`webstar-server-dotnet/`)
-- Godot WebStar plugin (`webstar/` and `addons/webstar/`)
+- Godot WebStar plugin (`webstar-test-client/addons/webstar/`)
 - Basic lobby management
 - Player messaging protocol
 
@@ -44,7 +44,7 @@ godot --path . --headless
 ## Directory Structure
 ```
 webstar/                          # Main project
-├── webstar/                      # Core plugin source
 ├── webstar-server-dotnet/        # .NET server (working)
-└── webstar-test-client/          # Test/demo project
+└── webstar-test-client/          # Addon development environment
+    └── addons/webstar/           # The WebStar addon (source of truth)
 ```
