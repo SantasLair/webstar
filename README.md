@@ -2,6 +2,8 @@
 
 A Godot 4 networking plugin for creating multiplayer games with WebRTC star topology and WebSocket fallback.
 
+> **Note**: This project is currently in private development.
+
 ## 🚀 Quick Start
 
 ### 1. Add the Plugin
@@ -29,7 +31,6 @@ webstar/
 ├── 📁 webstar/                    # Core plugin source
 ├── 📁 webstar-server-dotnet/      # .NET 9 server (recommended)
 ├── 📁 webstar-test-client/        # Godot test project
-├── 📁 deprecated-webstar-server-nodejs/  # Legacy Node.js server
 └── 📄 README.md                   # This file
 ```
 

@@ -12,11 +12,6 @@ obj/
 *.suo
 .vs/
 
-# Node.js (for legacy server)
-node_modules/
-npm-debug.log*
-.env
-
 # IDE
 .vscode/
 *.swp
@@ -33,3 +28,14 @@ Thumbs.db
 # Temporary files
 *.temp
 *.bak
+
+# Private development
+TODO.md
+PRIVATE_NOTES.md
+.env.local
+config.local.*
+
+# Build artifacts
+dist/
+build/
+release/
