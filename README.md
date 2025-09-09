@@ -11,7 +11,7 @@
 
 WebStar provides **star topology networking** for Godot 4, combining **WebRTC peer-to-peer connections** with **WebSocket signaling** to create scalable, low-latency multiplayer experiences. Perfect for 2-8 player games requiring real-time synchronization.
 
-## 🎯 **What Makes WebStar Different**
+## 🎯 **How WebStar Works**
 
 ### **Star Topology Architecture**
 ```
@@ -22,10 +22,13 @@ WebStar provides **star topology networking** for Godot 4, combining **WebRTC pe
     Client C ──┘
 ```
 
+WebStar implements **star topology networking** with **WebRTC peer-to-peer connections**, providing:
+
 - **🎮 Host Authority**: One player acts as the authoritative server
 - **⚡ Low Latency**: Direct WebRTC P2P connections to host
-- **📈 Scalable**: O(n) connection complexity, not O(n²)
+- **📈 Scalable**: O(n) connection complexity, not O(n²)  
 - **🔄 Reliable**: Automatic host migration and WebSocket fallback
+- **🛠️ Native Integration**: Works seamlessly with Godot's multiplayer system
 
 ### **Key Features**
 - ✅ **WebRTC P2P**: Ultra-low latency direct connections
@@ -34,6 +37,16 @@ WebStar provides **star topology networking** for Godot 4, combining **WebRTC pe
 - ✅ **Production Server**: Professional .NET 9 signaling server
 - ✅ **Fallback Support**: WebSocket relay when P2P fails
 - ✅ **Host Migration**: Seamless authority transfer
+
+## 🧪 **Development Server Available**
+
+**Want to test WebStar without setting up a local server?**
+
+A development/testing server is available at:
+- **WebSocket**: `ws://dev.webstar.santaslair.net/ws`
+- **Health Check**: `http://dev.webstar.santaslair.net/health`
+
+> **⚠️ Important**: This is a **development/testing server only** and may not always be available. For production or reliable development, please set up your own local server using the instructions below.
 
 ---
 
