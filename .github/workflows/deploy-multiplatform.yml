@@ -1,0 +1,184 @@
+name: Build and Deploy WebStar Server
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'webstar-server-dotnet/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'webstar-server-dotnet/**'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: webstar-server
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.image.outputs.image }}
+      digest: ${{ steps.build.outputs.digest }}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: Build and push Docker image
+      id: build
+      uses: docker/build-push-action@v5
+      with:
+        context: ./webstar-server-dotnet
+        file: ./webstar-server-dotnet/Dockerfile
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+
+    - name: Output image
+      id: image
+      run: echo "image=${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_OUTPUT
+
+  # DigitalOcean Deployment
+  deploy-digitalocean:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && vars.DEPLOY_TO_DIGITALOCEAN == 'true'
+    
+    steps:
+    - name: Deploy to DigitalOcean
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.DO_HOST }}
+        username: ${{ secrets.DO_USERNAME }}
+        key: ${{ secrets.DO_PRIVATE_KEY }}
+        script: |
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+          docker pull ${{ needs.build.outputs.image }}
+          docker stop webstar-server || true
+          docker rm webstar-server || true
+          docker run -d \
+            --name webstar-server \
+            --restart unless-stopped \
+            -p 80:5090 \
+            --health-cmd="curl -f http://localhost:5090/health || exit 1" \
+            --health-interval=30s \
+            --health-timeout=10s \
+            --health-retries=3 \
+            ${{ needs.build.outputs.image }}
+          docker image prune -f
+
+  # AWS ECS Deployment
+  deploy-aws-ecs:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && vars.DEPLOY_TO_AWS == 'true'
+    
+    steps:
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
+
+    - name: Update ECS service
+      run: |
+        aws ecs update-service \
+          --cluster ${{ vars.AWS_CLUSTER_NAME }} \
+          --service ${{ vars.AWS_SERVICE_NAME }} \
+          --force-new-deployment
+
+  # Google Cloud Run Deployment
+  deploy-gcp-cloudrun:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && vars.DEPLOY_TO_GCP == 'true'
+    
+    steps:
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+
+    - name: Deploy to Cloud Run
+      run: |
+        gcloud run deploy webstar-server \
+          --image ${{ needs.build.outputs.image }} \
+          --platform managed \
+          --region ${{ vars.GCP_REGION || 'us-central1' }} \
+          --allow-unauthenticated \
+          --port 5090
+
+  # Azure Container Instances Deployment
+  deploy-azure-aci:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && vars.DEPLOY_TO_AZURE == 'true'
+    
+    steps:
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Deploy to Azure Container Instances
+      run: |
+        az container create \
+          --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+          --name webstar-server \
+          --image ${{ needs.build.outputs.image }} \
+          --ports 5090 \
+          --dns-name-label webstar-${{ github.run_number }} \
+          --environment-variables ASPNETCORE_ENVIRONMENT=Production \
+          --restart-policy Always
+
+  # Kubernetes Deployment (works with any K8s cluster)
+  deploy-kubernetes:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && vars.DEPLOY_TO_KUBERNETES == 'true'
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v3
+
+    - name: Configure kubectl
+      run: |
+        echo "${{ secrets.KUBECONFIG }}" | base64 -d > kubeconfig
+        export KUBECONFIG=kubeconfig
+
+    - name: Update deployment image
+      run: |
+        kubectl set image deployment/webstar-server \
+          webstar-server=${{ needs.build.outputs.image }} \
+          --namespace=${{ vars.KUBERNETES_NAMESPACE || 'default' }}
+        kubectl rollout status deployment/webstar-server \
+          --namespace=${{ vars.KUBERNETES_NAMESPACE || 'default' }}

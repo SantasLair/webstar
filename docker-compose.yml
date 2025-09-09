@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  webstar-server:
+    build:
+      context: ./webstar-server-dotnet
+      dockerfile: Dockerfile
+    ports:
+      - "5090:5090"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5090
+    volumes:
+      - ./webstar-server-dotnet:/app/src:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5090/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Add a reverse proxy for production-like setup
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - webstar-server
+    restart: unless-stopped
+    profiles:
+      - production

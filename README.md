@@ -56,7 +56,7 @@ cp -r webstar-addon-dev/addons/webstar/ your-project/addons/
 ```bash
 cd webstar-server-dotnet
 dotnet run
-# Server starts on ws://localhost:8080
+# Server starts on ws://localhost:5090
 ```
 
 ### **3. Basic Usage**
@@ -70,7 +70,7 @@ var webstar_manager: WebStarManager
 func _ready():
     # Create and configure WebStar
     var config = WebStarConfig.new()
-    config.signaling_server_url = "ws://localhost:8080"
+    config.signaling_server_url = "ws://localhost:5090"
     config.webrtc_enabled = true
     
     webstar_manager = WebStarManager.new()
@@ -265,6 +265,33 @@ cd webstar-server-dotnet && dotnet run
 - Limited to **8 players** in star topology (by design)
 - Host disconnection causes temporary interruption
 - Mobile testing incomplete
+
+---
+
+## 🚀 **Server Deployment**
+
+WebStar includes a production-ready .NET server with **automated deployment to any cloud provider**:
+
+### **Supported Platforms**
+- ✅ **DigitalOcean** (Droplets, App Platform)
+- ✅ **AWS** (EC2, ECS, Fargate, App Runner) 
+- ✅ **Google Cloud** (Compute Engine, Cloud Run, GKE)
+- ✅ **Microsoft Azure** (Container Instances, App Service, AKS)
+- ✅ **Heroku, Railway, Render, Fly.io**
+- ✅ **Any Linux server with Docker**
+
+### **One-Click Deployment**
+1. **Push to main branch** → GitHub Actions automatically builds & deploys
+2. **Configure 3 secrets**: Server IP, SSH username, SSH key
+3. **Access your server**: `http://your-server-ip/health`
+
+```bash
+# Works on ANY cloud provider with Docker
+docker run -d --name webstar-server -p 80:5090 --restart unless-stopped \
+  ghcr.io/santasliar/webstar-server:latest
+```
+
+📚 **[Complete Deployment Guide](DEPLOYMENT.md)**
 
 ---
 

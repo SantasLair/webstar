@@ -28,7 +28,7 @@ func _ready():
     WebStar.lobby_joined.connect(_on_lobby_joined)
     WebStar.message_received.connect(_on_message_received)
     
-    # Join a lobby (uses default signaling server: ws://localhost:8080/ws)
+    # Join a lobby (uses default signaling server: ws://localhost:5090/ws)
     await WebStar.join_lobby("ROOM123", "PlayerName")
 ```
 
@@ -42,8 +42,8 @@ extends Node
 func _ready():
     # Configure WebStar (optional - only if you need custom settings)
     var config = WebStarConfig.new()
-    config.signaling_server_url = "ws://your-server.com:8080/ws"
-    config.relay_server_url = "ws://your-server.com:8080/relay"
+    config.signaling_server_url = "ws://your-server.com:5090/ws"
+    config.relay_server_url = "ws://your-server.com:5090/relay"
     
     # Initialize with custom config
     WebStar.initialize_with_config(config)
@@ -75,15 +75,15 @@ npm install
 npm start
 ```
 
-The server runs on `ws://localhost:8080` by default.
+The server runs on `ws://localhost:5090` by default.
 
 ## Configuration
 
 Configuration is optional - WebStar works with default settings out of the box. 
 
 ### Default Settings
-- Signaling server: `ws://localhost:8080/ws`
-- Relay server: `ws://localhost:8080/relay`
+- Signaling server: `ws://localhost:5090/ws`
+- Relay server: `ws://localhost:5090/relay`
 - WebRTC enabled with Google STUN servers
 - Auto-reconnect and host migration enabled
 
@@ -95,8 +95,8 @@ If you need to customize the behavior, create a `WebStarConfig` resource:
 var config = WebStarConfig.new()
 
 # Server settings
-config.signaling_server_url = "ws://your-server.com:8080/ws"
-config.relay_server_url = "ws://your-server.com:8080/relay"
+config.signaling_server_url = "ws://your-server.com:5090/ws"
+config.relay_server_url = "ws://your-server.com:5090/relay"
 
 # WebRTC settings
 config.webrtc_enabled = true
@@ -267,7 +267,7 @@ Create a `.env` file:
 
 ```env
 HOST=0.0.0.0
-PORT=8080
+PORT=5090
 ALLOWED_ORIGINS=http://localhost:3000,https://yourgame.com
 MAX_LOBBIES=1000
 LOG_LEVEL=info
