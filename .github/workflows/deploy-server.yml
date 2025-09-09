@@ -64,7 +64,7 @@ jobs:
           echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
           
           # Pull the latest image
-          docker pull ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
+          docker pull ghcr.io/santaslair/webstar-server:latest
           
           # Stop and remove existing container
           docker stop webstar-server || true
@@ -80,7 +80,7 @@ jobs:
             --health-interval=30s \
             --health-timeout=10s \
             --health-retries=3 \
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
+            ghcr.io/santaslair/webstar-server:latest
           
           # Clean up old images
           docker image prune -f
