@@ -2,6 +2,8 @@
 
 A .NET 9 WebSocket server implementation for WebStar networking, providing Godot-compatible WebSocket communication.
 
+<!-- Deployment trigger test -->
+
 ## Features
 
 - ✅ **Godot Compatible**: Works perfectly with Godot's WebSocketPeer
