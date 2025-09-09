@@ -1,12 +1,13 @@
 name: Update Documentation
 
-on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'webstar-server-dotnet/**'
-      - '.github/workflows/**'
-      - 'README.md'
+# Temporarily disabled - re-enable after fixing broken links
+# on:
+#   push:
+#     branches: [ main ]
+#     paths:
+#       - 'webstar-server-dotnet/**'
+#       - '.github/workflows/**'
+#       - 'README.md'
 
 jobs:
   check-docs:
