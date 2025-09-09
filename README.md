@@ -70,7 +70,7 @@ var webstar_manager: WebStarManager
 func _ready():
     # Create and configure WebStar
     var config = WebStarConfig.new()
-    config.signaling_server_url = "ws://localhost:5090"
+    config.signaling_server_url = "ws://localhost:5090"  # or "ws://dev.webstar.santaslair.net" for testing (may not always be available)
     config.webrtc_enabled = true
     
     webstar_manager = WebStarManager.new()

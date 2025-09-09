@@ -40,10 +40,10 @@ If you need to customize server URLs or other settings:
 extends Node
 
 func _ready():
-    # Configure WebStar (optional - only if you need custom settings)
+    # Configure WebStar for testing server (optional - dev/testing only, may not always be available)
     var config = WebStarConfig.new()
-    config.signaling_server_url = "ws://your-server.com:5090/ws"
-    config.relay_server_url = "ws://your-server.com:5090/relay"
+    config.signaling_server_url = "ws://dev.webstar.santaslair.net/ws"
+    config.relay_server_url = "ws://dev.webstar.santaslair.net/relay"
     
     # Initialize with custom config
     WebStar.initialize_with_config(config)
@@ -77,13 +77,20 @@ npm start
 
 The server runs on `ws://localhost:5090` by default.
 
+**Testing Server Available**: For testing without setting up a local server, you can use `ws://dev.webstar.santaslair.net` - however, this is a development/testing server that may not always be available.
+
 ## Configuration
 
 Configuration is optional - WebStar works with default settings out of the box. 
 
 ### Default Settings
+**Default (Local Development)**:
 - Signaling server: `ws://localhost:5090/ws`
 - Relay server: `ws://localhost:5090/relay`
+
+**Testing Server (Development/Testing Only - May Not Always Be Available)**:
+- Signaling server: `ws://dev.webstar.santaslair.net/ws`
+- Relay server: `ws://dev.webstar.santaslair.net/relay`
 - WebRTC enabled with Google STUN servers
 - Auto-reconnect and host migration enabled
 
@@ -95,8 +102,9 @@ If you need to customize the behavior, create a `WebStarConfig` resource:
 var config = WebStarConfig.new()
 
 # Server settings
-config.signaling_server_url = "ws://your-server.com:5090/ws"
-config.relay_server_url = "ws://your-server.com:5090/relay"
+# For testing with remote server (dev/testing only - may not always be available)
+config.signaling_server_url = "ws://dev.webstar.santaslair.net/ws"
+config.relay_server_url = "ws://dev.webstar.santaslair.net/relay"
 
 # WebRTC settings
 config.webrtc_enabled = true

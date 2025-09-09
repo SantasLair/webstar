@@ -19,12 +19,21 @@ dotnet run
 
 Server will start on `http://localhost:5090`
 
+**Testing Server**: A development/testing server is available at `http://dev.webstar.santaslair.net` but may not always be available.
+
 ## Endpoints
 
+**Local Development**:
 - **WebSocket**: `ws://localhost:5090/ws`
 - **Health Check**: `http://localhost:5090/health`
 - **Stats**: `http://localhost:5090/stats`
 - **Lobbies**: `http://localhost:5090/lobbies`
+
+**Testing Server** (may not always be available):
+- **WebSocket**: `ws://dev.webstar.santaslair.net/ws`
+- **Health Check**: `http://dev.webstar.santaslair.net/health`
+- **Stats**: `http://dev.webstar.santaslair.net/stats`
+- **Lobbies**: `http://dev.webstar.santaslair.net/lobbies`
 
 ## WebSocket Protocol
 
