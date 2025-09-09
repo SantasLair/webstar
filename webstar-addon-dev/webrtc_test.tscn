@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/webrtc_test_orchestrator.gd" id="1"]
+
+[node name="WebRTCTest" type="Node"]
+script = ExtResource("1")

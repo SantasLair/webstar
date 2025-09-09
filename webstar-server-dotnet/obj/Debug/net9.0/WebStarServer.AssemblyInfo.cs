@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("WebStarServer")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8ed76afbb5ac02ec9fc035b984f0be630da70d22")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+285e6a02a7fae81ca4e06ad7f653678b97f4676a")]
 [assembly: System.Reflection.AssemblyProductAttribute("WebStarServer")]
 [assembly: System.Reflection.AssemblyTitleAttribute("WebStarServer")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
