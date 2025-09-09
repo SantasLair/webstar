@@ -75,7 +75,7 @@ jobs:
         key: ${{ secrets.DO_PRIVATE_KEY }}
         script: |
           echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
-          docker pull ${{ needs.build.outputs.image }}
+          docker pull ghcr.io/santaslair/webstar-server:latest
           docker stop webstar-server || true
           docker rm webstar-server || true
           docker run -d \
@@ -86,7 +86,7 @@ jobs:
             --health-interval=30s \
             --health-timeout=10s \
             --health-retries=3 \
-            ${{ needs.build.outputs.image }}
+            ghcr.io/santaslair/webstar-server:latest
           docker image prune -f
 
   # AWS ECS Deployment
