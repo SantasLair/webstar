@@ -46,6 +46,7 @@ var relay_manager: WebStarRelayManager
 var heartbeat_manager: WebStarHeartbeatManager
 var host_migration: WebStarHostMigration
 var message_handler: WebStarMessageHandler
+var multiplayer_peer: WebStarMultiplayerPeer
 
 # State
 var lobby_id: String = ""
@@ -78,6 +79,7 @@ func _initialize_components():
 	var HeartbeatManagerScript = preload("res://addons/webstar/webstar_heartbeat_manager.gd")
 	var HostMigrationScript = preload("res://addons/webstar/webstar_host_migration.gd")
 	var MessageHandlerScript = preload("res://addons/webstar/webstar_message_handler.gd")
+	var MultiplayerPeerScript = preload("res://addons/webstar/webstar_multiplayer_peer.gd")
 	
 	# Initialize all components
 	signaling_client = SignalingClientScript.new(config)
@@ -86,6 +88,10 @@ func _initialize_components():
 	heartbeat_manager = HeartbeatManagerScript.new(config)
 	host_migration = HostMigrationScript.new(config)
 	message_handler = MessageHandlerScript.new()
+	multiplayer_peer = MultiplayerPeerScript.new()
+	
+	# Initialize multiplayer peer with this manager
+	multiplayer_peer.initialize_with_webstar(self)
 	
 	# Add as children for proper lifecycle management
 	add_child(signaling_client)
@@ -94,6 +100,7 @@ func _initialize_components():
 	add_child(heartbeat_manager)
 	add_child(host_migration)
 	add_child(message_handler)
+	add_child(multiplayer_peer)
 	
 	# Connect signals
 	_connect_component_signals()
@@ -191,6 +198,53 @@ func is_player_connected(player_id: int) -> bool:
 
 func get_ping(player_id: int) -> int:
 	var player_info = players.get(player_id)
+	return player_info.ping if player_info else -1
+
+# High-level networking integration
+func get_multiplayer_peer() -> WebStarMultiplayerPeer:
+	return multiplayer_peer
+
+func setup_high_level_networking() -> bool:
+	if not multiplayer_peer:
+		push_error("Multiplayer peer not initialized")
+		return false
+	
+	# Set the multiplayer peer on the scene tree
+	get_tree().set_multiplayer(SceneMultiplayer.new(), NodePath("/root"))
+	get_tree().get_multiplayer().multiplayer_peer = multiplayer_peer
+	
+	print("[WebStar] High-level networking configured")
+	return true
+
+func get_player_list() -> Dictionary:
+	return players.duplicate()
+
+func send_message_to_player(player_id: int, message_name: String, data: Dictionary):
+	var message_data = {
+		"message_name": message_name,
+		"data": data,
+		"sender_id": local_player_id,
+		"timestamp": Time.get_ticks_msec()
+	}
+	_send_to_player(player_id, message_data)
+
+func send_message_to_all(message_name: String, data: Dictionary):
+	var message_data = {
+		"message_name": message_name, 
+		"data": data,
+		"sender_id": local_player_id,
+		"timestamp": Time.get_ticks_msec()
+	}
+	_send_to_all(message_data)
+
+func disconnect_player(player_id: int):
+	if players.has(player_id):
+		var player_info = players[player_id]
+		match player_info.connection_type:
+			ConnectionType.WEBRTC:
+				webrtc_manager.disconnect_peer(player_info.peer_id)
+			ConnectionType.WEBSOCKET_RELAY:
+				relay_manager.disconnect_peer(player_id)
 	return player_info.ping if player_info else -1
 
 # Internal methods

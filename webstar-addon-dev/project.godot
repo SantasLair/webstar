@@ -13,7 +13,7 @@ config_version=5
 config/name="WebStar addon dev"
 run/main_scene="uid://bf250m37epcor"
 config/features=PackedStringArray("4.4", "Forward Plus")
-config/icon="uid://cjr5kgjc2nt3e"
+config/icon="uid://dx03j8pfaoh3n"
 
 [autoload]
 
