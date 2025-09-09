@@ -58,6 +58,74 @@ Server will start on `http://localhost:5090`
 }
 ```
 
+## Game Flow: From Lobby to WebRTC
+
+### 1. **Lobby Phase** (WebSocket Server)
+- Players join lobby via WebSocket messages
+- Server coordinates who's in the lobby
+- Chat, ready status, etc. happens through WebSocket server
+
+### 2. **Starting the Game** 
+When host starts the game:
+```json
+{
+  "type": "start_game",
+  "lobby_id": "test123"
+}
+```
+
+### 3. **WebRTC Connection Setup**
+The WebSocket server facilitates WebRTC peer connection setup:
+
+**Step 1**: Host creates WebRTC offer
+```json
+{
+  "type": "webrtc_offer", 
+  "target_player": "Player2",
+  "offer": "...SDP offer data..."
+}
+```
+
+**Step 2**: Client responds with answer
+```json
+{
+  "type": "webrtc_answer",
+  "target_player": "Host", 
+  "answer": "...SDP answer data..."
+}
+```
+
+**Step 3**: ICE candidates exchanged
+```json
+{
+  "type": "ice_candidate",
+  "target_player": "Player2",
+  "candidate": "...ICE candidate data..."
+}
+```
+
+### 4. **Direct WebRTC Communication**
+Once WebRTC connections are established:
+- **Game state, input, etc.**: Direct P2P WebRTC (bypasses WebSocket server)
+- **Lobby management**: WebSocket connection **remains active** throughout game
+
+### 5. **Persistent Lobby Connection**
+**Important**: The WebSocket lobby connection stays connected during the entire game session for:
+- **Host Migration**: When host disconnects, server coordinates new host selection
+- **Player Join/Leave**: Handle mid-game player changes  
+- **Reconnection**: Re-establish WebRTC connections after network issues
+- **Game End**: Return to lobby for next round
+
+### 6. **Message Flow Summary**
+```
+Lobby Management      → WebSocket Server → All Players (Always Active)
+Game Data/Input       → Host WebRTC     → Target Player(s)
+WebRTC Signaling      → WebSocket Server → Target Player
+Host Migration Logic  → WebSocket Server → All Players
+```
+
+**Key Point**: The WebSocket server acts as **both** signaling server AND persistent session coordinator - it never disconnects during gameplay.
+
 ## Architecture
 
 - **ASP.NET Core WebSockets**: For Godot compatibility
