@@ -46,7 +46,7 @@ var relay_manager: WebStarRelayManager
 var heartbeat_manager: WebStarHeartbeatManager
 var host_migration: WebStarHostMigration
 var message_handler: WebStarMessageHandler
-var multiplayer_peer: WebStarMultiplayerPeer
+var multiplayer_peer: WebRTCMultiplayerPeer
 
 # State
 var lobby_id: String = ""
@@ -79,7 +79,6 @@ func _initialize_components():
 	var HeartbeatManagerScript = preload("res://addons/webstar/webstar_heartbeat_manager.gd")
 	var HostMigrationScript = preload("res://addons/webstar/webstar_host_migration.gd")
 	var MessageHandlerScript = preload("res://addons/webstar/webstar_message_handler.gd")
-	var MultiplayerPeerScript = preload("res://addons/webstar/webstar_multiplayer_peer.gd")
 	
 	# Initialize all components
 	signaling_client = SignalingClientScript.new(config)
@@ -88,10 +87,9 @@ func _initialize_components():
 	heartbeat_manager = HeartbeatManagerScript.new(config)
 	host_migration = HostMigrationScript.new(config)
 	message_handler = MessageHandlerScript.new()
-	multiplayer_peer = MultiplayerPeerScript.new()
 	
-	# Initialize multiplayer peer with this manager
-	multiplayer_peer.initialize_with_webstar(self)
+	# Get the WebRTC multiplayer peer from the WebRTC manager
+	multiplayer_peer = webrtc_manager.multiplayer_peer
 	
 	# Add as children for proper lifecycle management
 	add_child(signaling_client)
@@ -100,7 +98,10 @@ func _initialize_components():
 	add_child(heartbeat_manager)
 	add_child(host_migration)
 	add_child(message_handler)
-	add_child(multiplayer_peer)
+	
+	# Set up multiplayer peer for scene tree (optional - can be done by user)
+	# get_tree().set_multiplayer(SceneMultiplayer.new(), self.get_path())
+	# get_tree().get_multiplayer().multiplayer_peer = multiplayer_peer
 	
 	# Connect signals
 	_connect_component_signals()
@@ -201,7 +202,7 @@ func get_ping(player_id: int) -> int:
 	return player_info.ping if player_info else -1
 
 # High-level networking integration
-func get_multiplayer_peer() -> WebStarMultiplayerPeer:
+func get_multiplayer_peer() -> WebRTCMultiplayerPeer:
 	return multiplayer_peer
 
 func setup_high_level_networking() -> bool:
@@ -235,7 +236,7 @@ func send_message_to_all(message_name: String, data: Dictionary):
 		"sender_id": local_player_id,
 		"timestamp": Time.get_ticks_msec()
 	}
-	_send_to_all(message_data)
+	_send_to_all_players(message_data)
 
 func disconnect_player(player_id: int):
 	if players.has(player_id):
@@ -245,7 +246,8 @@ func disconnect_player(player_id: int):
 				webrtc_manager.disconnect_peer(player_info.peer_id)
 			ConnectionType.WEBSOCKET_RELAY:
 				relay_manager.disconnect_peer(player_id)
-	return player_info.ping if player_info else -1
+		return player_info.ping
+	return -1
 
 # Internal methods
 func _send_to_all_players(data: Dictionary):

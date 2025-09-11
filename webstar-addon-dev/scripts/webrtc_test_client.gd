@@ -15,7 +15,7 @@ var webrtc_test_complete: bool = false
 signal client_ready(client_id: String)
 signal webrtc_connection_established(client_id: String, peer_id: String)
 signal webrtc_data_received(client_id: String, data: Dictionary)
-signal test_completed(client_id: String, success: bool)
+signal test_completed(client_id: String, success: bool) ## Emitted when test finishes
 
 func _init(p_client_id: String):
 	client_id = p_client_id
@@ -134,9 +134,16 @@ func _on_webrtc_connection_failed(peer_id: String, _player_id: int, reason: Stri
 	print("💥 [%s] WebRTC connection failed to %s: %s" % [client_id, peer_id, reason])
 
 func get_test_results() -> Dictionary:
-	return {
+	var results = {
 		"client_id": client_id,
 		"connected_peers": connected_peers.size(),
 		"messages_received": messages_received.size(),
 		"test_successful": connected_peers.size() > 0 and messages_received.size() > 0
 	}
+	
+	# Emit test completion signal
+	if not webrtc_test_complete:
+		webrtc_test_complete = true
+		test_completed.emit(client_id, results.test_successful)
+	
+	return results

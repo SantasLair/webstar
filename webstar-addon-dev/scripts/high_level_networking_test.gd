@@ -47,14 +47,13 @@ func test_high_level_integration():
 	print_final_results()
 
 func test_multiplayer_peer_setup():
-	print("🏗️  Creating WebStar with MultiplayerPeerExtension...")
+	print("🏗️  Creating WebStar with WebRTCMultiplayerPeer...")
 	
 	# Load WebStar components
 	var WebStarConfig = load("res://addons/webstar/webstar_config.gd")
 	var WebStarManager = load("res://addons/webstar/webstar_manager.gd")
-	var WebStarMultiplayerPeer = load("res://addons/webstar/webstar_multiplayer_peer.gd")
 	
-	if WebStarConfig and WebStarManager and WebStarMultiplayerPeer:
+	if WebStarConfig and WebStarManager:
 		print("✅ WebStar classes loaded successfully")
 		test_results.webstar_initialized = true
 		
@@ -71,15 +70,15 @@ func test_multiplayer_peer_setup():
 		
 		await get_tree().create_timer(1.0).timeout
 		
-		# Get the multiplayer peer
+		# Get the multiplayer peer (now WebRTCMultiplayerPeer)
 		multiplayer_peer = webstar_manager.get_multiplayer_peer()
 		
 		if multiplayer_peer:
-			print("✅ WebStarMultiplayerPeer created successfully")
+			print("✅ WebRTCMultiplayerPeer obtained successfully")
 			print("📋 Peer type: %s" % multiplayer_peer.get_class())
 			test_results.multiplayer_peer_created = true
 		else:
-			print("❌ Failed to create WebStarMultiplayerPeer")
+			print("❌ Failed to get WebRTCMultiplayerPeer")
 	else:
 		print("❌ Failed to load WebStar classes")
 	
