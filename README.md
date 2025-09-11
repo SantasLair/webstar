@@ -138,6 +138,106 @@ webstar/
 
 ---
 
+## 🧪 **Testing & Validation**
+
+WebStar includes comprehensive automated testing to ensure reliability and functionality.
+
+### **🚀 Quick Test Execution**
+
+**Run All Core Tests (Recommended)**
+```powershell
+# Navigate to project root
+cd f:\godot\webstar
+
+# Run automated test suite (3 core tests)
+.\run-automated-tests.ps1
+```
+
+**Expected Output:**
+```
+✅ PASSED: simple_star_test     - Star topology validation
+✅ PASSED: webstar_test         - Live server integration  
+✅ PASSED: builtin_webrtc_test  - WebRTC functionality
+Success Rate: 100%
+```
+
+### **📋 Available Test Runners**
+
+| Script | Purpose | Tests Included |
+|--------|---------|----------------|
+| `run-automated-tests.ps1` | **Quick validation** | 3 core tests (recommended) |
+| `WebStar-TestRunner.ps1` | **Full test suite** | All available tests + categories |
+
+### **🎯 Test Categories**
+
+**Core Automated Tests:**
+```powershell
+.\run-automated-tests.ps1
+```
+- **simple_star_test**: Star topology formation and host migration
+- **webstar_test**: Live server connectivity (`dev.webstar.santaslair.net`)
+- **builtin_webrtc_test**: Godot 4.4+ built-in WebRTC validation
+
+**Extended Test Suites:**
+```powershell
+# WebRTC-focused tests
+.\WebStar-TestRunner.ps1 -TestType webrtc
+
+# Networking tests
+.\WebStar-TestRunner.ps1 -TestType networking
+
+# Run all available tests
+.\WebStar-TestRunner.ps1 -TestType all
+
+# Run specific test
+.\WebStar-TestRunner.ps1 -SpecificTest simple_star_test
+```
+
+### **📊 Test Results & Logs**
+
+All test results are saved to `webstar-addon-dev/test_results/`:
+- **Individual logs**: `{test_name}_test.log`
+- **Summary report**: `final_report.txt`
+- **Execution timestamps** and detailed output
+
+### **✅ Current Test Status**
+
+**Last Validation: September 10, 2025**
+- ✅ **simple_star_test**: 100% pass rate (star topology fully functional)
+- ✅ **webstar_test**: 100% pass rate (live server integration working)  
+- ✅ **builtin_webrtc_test**: 100% pass rate (Godot WebRTC confirmed)
+- ✅ **Overall Success Rate**: 100% (3/3 tests passing)
+
+### **🔧 Prerequisites for Testing**
+
+1. **Godot Engine** must be in system PATH
+   ```powershell
+   # Verify Godot is accessible
+   godot --version
+   ```
+
+2. **PowerShell** execution (Windows)
+   ```powershell
+   # If needed, allow script execution
+   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+   ```
+
+3. **Internet connection** for live server tests (`webstar_test.tscn`)
+
+### **🎮 Manual Testing**
+
+For interactive testing and development:
+```powershell
+# Run individual test scenes in Godot editor
+cd webstar-addon-dev
+godot --path . simple_star_test.tscn
+
+# Or use the interactive demo
+godot --path . star_topology_demo.tscn
+```
+
+---
+
 ## 🎮 **Perfect For These Game Types**
 
 | Game Type | Why WebStar Excels | Examples |

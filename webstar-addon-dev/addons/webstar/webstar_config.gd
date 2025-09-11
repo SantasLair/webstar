@@ -7,6 +7,7 @@ extends Resource
 @export var signaling_server_url: String = "ws://dev.webstar.santaslair.net/ws"
 @export var lobby_heartbeat_interval: float = 30.0  # seconds
 @export var connection_timeout: float = 10.0  # seconds
+@export var max_players: int = 8  # Maximum players per lobby
 
 # WebRTC configuration
 @export var webrtc_enabled: bool = true
