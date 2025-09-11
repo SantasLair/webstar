@@ -4,7 +4,7 @@ class_name WebStarConfig
 extends Resource
 
 # Signaling server configuration
-@export var signaling_server_url: String = "ws://localhost:5090/ws"
+@export var signaling_server_url: String = "ws://dev.webstar.santaslair.net/ws"
 @export var lobby_heartbeat_interval: float = 30.0  # seconds
 @export var connection_timeout: float = 10.0  # seconds
 
@@ -18,7 +18,7 @@ extends Resource
 
 # WebSocket relay fallback configuration
 @export var use_websocket_fallback: bool = true
-@export var relay_server_url: String = "ws://localhost:5090/relay"
+@export var relay_server_url: String = "ws://dev.webstar.santaslair.net/relay"
 @export var relay_timeout: float = 5.0  # seconds
 
 # Host migration configuration
