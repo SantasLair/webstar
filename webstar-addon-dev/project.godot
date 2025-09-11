@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="WebStar addon dev"
-run/main_scene="uid://bf250m37epcor"
+run/main_scene="uid://d0xkfsnp4if7t"
 config/features=PackedStringArray("4.4", "Forward Plus")
 config/icon="uid://dx03j8pfaoh3n"
 

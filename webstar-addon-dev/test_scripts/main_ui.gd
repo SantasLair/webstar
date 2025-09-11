@@ -3,8 +3,6 @@ extends Node2D
 ## Clean WebStar Demo
 
 func _ready():
-	print("=== WebStar Demo Starting ===")
-	
 	# Connect to signals (WebStar auto-initializes in _ready)
 	WebStar.lobby_joined.connect(_on_lobby_joined)
 	WebStar.message_received.connect(_on_message_received)
@@ -12,14 +10,18 @@ func _ready():
 	WebStar.connection_failed.connect(_on_connection_failed)
 	
 	# Wait for WebStar to initialize
-	await get_tree().create_timer(1.0).timeout
-	print("Attempting to join demo lobby...")
-	var success = await WebStar.join_lobby("demo-lobby", "DemoPlayer")
 	
-	if success:
-		print("✅ Successfully joined lobby!")
-	else:
-		print("❌ Failed to join lobby")
+	# commenting out, was auto-joining at startup
+	
+	#await get_tree().create_timer(1.0).timeout
+	#print("Attempting to join demo lobby...")
+	
+	#var success = await WebStar.join_lobby("demo-lobby", "DemoPlayer")
+	
+	#if success:
+	#	print("✅ Successfully joined lobby!")
+	#else:
+	#	print("❌ Failed to join lobby")
 
 func _on_lobby_joined(lobby_id: String, player_id: int, _player_list: Array):
 	print("🎉 Joined lobby: ", lobby_id, " as player: ", player_id)

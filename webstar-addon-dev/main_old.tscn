@@ -1,0 +1,18 @@
+[gd_scene load_steps=2 format=3 uid="uid://bf250m37epcor"]
+
+[ext_resource type="Script" uid="uid://clfdmdr50sxf0" path="res://test_scripts/main_ui.gd" id="1_rkqpq"]
+
+[node name="Main" type="Node2D"]
+
+[node name="MainUI" type="Node2D" parent="."]
+script = ExtResource("1_rkqpq")
+
+[node name="JoinLobbyButton" type="Button" parent="MainUI"]
+offset_left = 37.0
+offset_top = 53.0
+offset_right = 195.0
+offset_bottom = 125.0
+text = "Join Lobby
+"
+
+[connection signal="pressed" from="MainUI/JoinLobbyButton" to="MainUI" method="_on_join_lobby_button_pressed"]
