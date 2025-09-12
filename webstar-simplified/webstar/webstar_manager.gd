@@ -102,7 +102,20 @@ func create_lobby(lobby_id: String, max_players: int, is_public: bool) -> bool:
 ## Joins an existing lobby. Fails if the lobby does not exist. Once lobby is joined,
 ## will receive WebRTC offer from host.	
 func join_lobby(lobby_id: String):
-	pass
+	if !_is_connected:
+		_is_connected = await connect_to_signaling_server_async()
+		if !_is_connected:
+			return false
+
+	if _current_lobby != "":
+		push_warning("Already connected to a lobby")
+		return false
+
+	_signal_client.send_message({
+		"type": "join_lobby",
+		"lobbyId": lobby_id      
+	})
+	return true
 
 
 func leave_lobby():

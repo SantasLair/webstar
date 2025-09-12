@@ -219,15 +219,13 @@ async Task SendError(WebSocket webSocket, string error)
 
 async Task HandleCreateLobby(WebSocket webSocket, ClientInfo clientInfo, JsonElement message)
 {
-    var lobbyId = GenerateLobbyId();
-    var lobbyName = message.TryGetProperty("name", out var nameProperty) ? nameProperty.GetString() : "Lobby";
+    var lobbyId = message.TryGetProperty("lobbyId", out var lobbyIdProperty) ? lobbyIdProperty.GetString() : GenerateLobbyId();
     var maxPlayers = message.TryGetProperty("maxPlayers", out var maxProperty) ? maxProperty.GetInt32() : 8;
     var isPublic = message.TryGetProperty("isPublic", out var publicProperty) ? publicProperty.GetBoolean() : true;
     
     var lobby = new LobbyInfo
     {
-        Id = lobbyId,
-        Name = lobbyName ?? "Lobby",
+        Id = lobbyId ?? GenerateLobbyId(),
         MaxPlayers = maxPlayers,
         IsPublic = isPublic,
         HostId = clientInfo.Id,
