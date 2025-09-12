@@ -1,8 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "aOLWQtHNiSw=",
+  "dgSpecHash": "K3t/iVMckLY=",
   "success": true,
   "projectFilePath": "F:\\godot\\webstar\\webstar-server-dotnet\\WebStarServer.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\damon\\.nuget\\packages\\microsoft.net.sdk.compilers.toolset\\9.0.300\\microsoft.net.sdk.compilers.toolset.9.0.300.nupkg.sha512"
+  ],
   "logs": []
 }

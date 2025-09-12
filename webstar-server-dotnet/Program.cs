@@ -52,7 +52,7 @@ app.MapGet("/lobbies", () =>
         {
             id = l.Id,
             name = l.Name,
-            playerCount = l.Players.Count,
+            playerCount = l.Peers.Count,
             maxPlayers = l.MaxPlayers,
             host = l.HostId
         });
@@ -198,9 +198,17 @@ async Task SendMessage(WebSocket webSocket, object message)
 {
     if (webSocket.State == WebSocketState.Open)
     {
-        var json = JsonSerializer.Serialize(message);
+        var options = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = false
+        };
+
+        var json = JsonSerializer.Serialize(message, options);
         var bytes = Encoding.UTF8.GetBytes(json);
         await webSocket.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
+
+        Console.WriteLine($"Sent message to client: {json}");
     }
 }
 
@@ -223,12 +231,14 @@ async Task HandleCreateLobby(WebSocket webSocket, ClientInfo clientInfo, JsonEle
         MaxPlayers = maxPlayers,
         IsPublic = isPublic,
         HostId = clientInfo.Id,
-        CreatedAt = DateTime.UtcNow
+        CreatedAt = DateTime.UtcNow,
+        NextPeerId = 2
     };
     
-    lobby.Players[clientInfo.Id] = new PlayerInfo
+    lobby.Peers[clientInfo.Id] = new PlayerInfo
     {
         Id = clientInfo.Id,
+        PeerId = 1,
         Name = clientInfo.Id, // Use clientId as name for now
         IsHost = true,
         JoinedAt = DateTime.UtcNow
@@ -236,7 +246,9 @@ async Task HandleCreateLobby(WebSocket webSocket, ClientInfo clientInfo, JsonEle
     
     lobbies[lobbyId] = lobby;
     clientInfo.LobbyId = lobbyId;
-    
+
+    Console.WriteLine($"DEBUG - Before serialization - lobby.MaxPlayers: {lobby.MaxPlayers}, type: {lobby.MaxPlayers.GetType()}");
+
     await SendMessage(webSocket, new
     {
         type = "lobby_created",
@@ -245,10 +257,10 @@ async Task HandleCreateLobby(WebSocket webSocket, ClientInfo clientInfo, JsonEle
         {
             id = lobby.Id,
             name = lobby.Name,
-            maxPlayers = lobby.MaxPlayers,
+            maxPlayers = (int)lobby.MaxPlayers,
             isPublic = lobby.IsPublic,
             hostId = lobby.HostId,
-            players = lobby.Players.Values.Select(p => new { id = p.Id, name = p.Name, isHost = p.IsHost })
+            peerId = (int)1,
         }
     });
     
@@ -259,14 +271,9 @@ async Task HandleJoinLobby(WebSocket webSocket, ClientInfo clientInfo, JsonEleme
 {
     string? lobbyId = null;
     
-    // Try to get lobbyId from message
     if (message.TryGetProperty("lobbyId", out var lobbyIdProperty))
     {
         lobbyId = lobbyIdProperty.GetString();
-    }
-    else if (message.TryGetProperty("lobby_id", out var lobbyIdProperty2))
-    {
-        lobbyId = lobbyIdProperty2.GetString();
     }
     
     if (string.IsNullOrEmpty(lobbyId))
@@ -287,12 +294,13 @@ async Task HandleJoinLobby(WebSocket webSocket, ClientInfo clientInfo, JsonEleme
         return;
     }
     
-    lobby.Players[clientInfo.Id] = new PlayerInfo
+    lobby.Peers[clientInfo.Id] = new PlayerInfo
     {
         Id = clientInfo.Id,
         Name = clientInfo.Id,
         IsHost = false,
-        JoinedAt = DateTime.UtcNow
+        JoinedAt = DateTime.UtcNow,
+        PeerId = lobby.NextPeerId++
     };
     
     clientInfo.LobbyId = lobbyId;
@@ -316,7 +324,13 @@ async Task HandleJoinLobby(WebSocket webSocket, ClientInfo clientInfo, JsonEleme
             maxPlayers = lobby.MaxPlayers,
             isPublic = lobby.IsPublic,
             hostId = lobby.HostId,
-            players = lobby.Players.Values.Select(p => new { id = p.Id, name = p.Name, isHost = p.IsHost })
+            peerId = (int)lobby.Peers[clientInfo.Id].PeerId,
+            players = lobby.Peers.Values.Select(p => new { 
+                id = p.Id, 
+                peerId = (int)p.PeerId,
+                name = p.Name,
+                isHost = p.IsHost
+            })
         }
     });
     
@@ -359,7 +373,7 @@ async Task HandleGetLobbies(WebSocket webSocket)
         {
             id = l.Id,
             name = l.Name,
-            playerCount = l.Players.Count,
+            playerCount = l.Peers.Count,
             maxPlayers = l.MaxPlayers,
             host = l.HostId
         });
@@ -394,7 +408,7 @@ async Task RemovePlayerFromLobby(string lobbyId, string playerId)
     if (!lobbies.TryGetValue(lobbyId, out var lobby))
         return;
     
-    lobby.Players.TryRemove(playerId, out _);
+    lobby.Peers.TryRemove(playerId, out _);
     
     // Remove client's lobby reference
     var clientToUpdate = clients.Values.FirstOrDefault(c => c.Id == playerId);
@@ -403,7 +417,7 @@ async Task RemovePlayerFromLobby(string lobbyId, string playerId)
         clientToUpdate.LobbyId = null;
     }
     
-    if (lobby.Players.Count == 0)
+    if (lobby.Peers.Count == 0)
     {
         // Remove empty lobby
         lobbies.TryRemove(lobbyId, out _);
@@ -421,7 +435,7 @@ async Task RemovePlayerFromLobby(string lobbyId, string playerId)
         // If the host left, assign new host
         if (lobby.HostId == playerId)
         {
-            var newHost = lobby.Players.Values.First();
+            var newHost = lobby.Peers.Values.First();
             newHost.IsHost = true;
             lobby.HostId = newHost.Id;
             
@@ -460,14 +474,15 @@ public class LobbyInfo
     public bool IsPublic { get; set; } = true;
     public string HostId { get; set; } = "";
     public DateTime CreatedAt { get; set; }
-    public ConcurrentDictionary<string, PlayerInfo> Players { get; set; } = new();
-    
-    public bool IsFull => Players.Count >= MaxPlayers;
+    public ConcurrentDictionary<string, PlayerInfo> Peers { get; set; } = new();
+    public int NextPeerId { get; set; } = 2; // Start from 2 since host is 1
+    public bool IsFull => Peers.Count >= MaxPlayers;
 }
 
 public class PlayerInfo
 {
     public string Id { get; set; } = "";
+    public int PeerId { get; set; } = 0;    // peer id used by the client
     public string Name { get; set; } = "";
     public bool IsHost { get; set; }
     public DateTime JoinedAt { get; set; }
