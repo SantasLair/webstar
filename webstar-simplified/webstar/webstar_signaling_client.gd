@@ -98,8 +98,7 @@ func _handle_message(data: Dictionary):
 func _handle_lobby_joined(data: Dictionary):
 	var lobby: Dictionary = data.get("lobby")
 	lobby_id = lobby.get("lobbyId", "")
-	# json parser always treats numbers as flots, we must cast
-	peer_id = int(lobby.get("peerId", 0)) 
+	peer_id = int(lobby.get("peerId", 0)) 	# json parser always treats numbers as flots, we must cast
 	var player_list = lobby.get("playerList", [])
 	lobby_joined.emit(lobby_id, peer_id, player_list)
 
