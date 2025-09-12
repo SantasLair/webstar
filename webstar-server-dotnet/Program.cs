@@ -247,8 +247,6 @@ async Task HandleCreateLobby(WebSocket webSocket, ClientInfo clientInfo, JsonEle
     lobbies[lobbyId] = lobby;
     clientInfo.LobbyId = lobbyId;
 
-    Console.WriteLine($"DEBUG - Before serialization - lobby.MaxPlayers: {lobby.MaxPlayers}, type: {lobby.MaxPlayers.GetType()}");
-
     await SendMessage(webSocket, new
     {
         type = "lobby_created",

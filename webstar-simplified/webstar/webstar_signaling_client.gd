@@ -117,15 +117,16 @@ func _handle_message(data: Dictionary):
 
 ## Handle lobby joined message			
 func _handle_lobby_joined(data: Dictionary):
-	lobby_id = data.get("lobby_id", "")
+	lobby_id = data.get("lobbyId", "")
 	# json parser always treats numbers as flots, we must cast
-	peer_id = int(data.get("player_id", 0)) 
-	var player_list = data.get("player_list", [])
+	peer_id = int(data.get("playerId", 0)) 
+	var player_list = data.get("playerList", [])
 	lobby_joined.emit(lobby_id, peer_id, player_list)
 
 
 ## Handle lobby created message
 func _handle_lobby_created(data: Dictionary):
-	lobby_id = data.get("lobby_id", "")
-	peer_id = int(data.get("player_id", 0))
+	var lobby: Dictionary = data.get("lobby")
+	lobby_id = lobby.get("id", "uknown")
+	peer_id = int(lobby.get("peerId", 0))
 	lobby_created.emit(lobby_id, peer_id)

@@ -4,10 +4,13 @@ var server_address = "127.0.0.1"
 var server_port = 5090
 var use_enet = false  # Set to false to use WebStar, true to use ENet
 
+signal lobby_created
+signal lobby_joined
+
+
 # WebStar specific settings
 var webstar_server_url = "ws://localhost:5090/ws"
 var webstar: WebstarManager = null
-
 var status = ""
 
 func _ready():
@@ -20,7 +23,9 @@ func _ready():
 	# Initialize WebStar if not using ENet
 	if not use_enet:
 		webstar = WebstarManager
+		webstar.lobby_created.connect(_on_lobby_created)
 		webstar.connect_to_signaling_server(webstar_server_url)
+
 
 func create_lobby(lobby_name):
 	print("creating lobby %s" % [lobby_name])
@@ -37,6 +42,10 @@ func create_lobby(lobby_name):
 			print("lobby created")
 	else:		
 		webstar.create_lobby(lobby_name, 8, false)
+	
+
+func _on_lobby_created(lobby_id, peer_id):
+	lobby_created.emit()	
 		
 
 func join_lobby(lobby_name):
