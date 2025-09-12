@@ -1,26 +1,30 @@
 extends Node
 
+var _lobby_id = ""
+var _can_send_messages = false
 
-func _ready():
+func _ready() -> void:
+	%NetworkManager.lobby_created.connect(_on_lobby_created_or_joined)
+
+func _process(delta: float) -> void:
 	_update_controls()
 
 
 func _on_host_button_pressed() -> void:
 	%NetworkManager.create_lobby(%LobbyText.text)
-	_update_controls()
+	_lobby_id = "--pending--"
+
 
 func _on_join_button_pressed() -> void:
 	%NetworkManager.join_lobby(%LobbyText.text)
-	_update_controls()
+	_lobby_id = "--pending--"
 
 
 func _update_controls():
-	$HostButton.disabled = %NetworkManager.status != ""
-	$JoinButton.disabled = %NetworkManager.status != ""
-	$LeaveButton.disabled = %NetworkManager.status == ""
-	
-	# Disable send button until WebRTC is ready
-	$SendButton.disabled = %NetworkManager.status == ""
+	$HostButton.disabled = _lobby_id.length() > 0
+	$JoinButton.disabled = _lobby_id.length() > 0
+	$LeaveButton.disabled = _lobby_id.length() == 0 or _lobby_id == "--pending--"
+	$SendButton.disabled = !_can_send_messages
 	
 
 func _add_system_message(message: String):
@@ -43,7 +47,7 @@ func _add_system_message(message: String):
 
 func _on_leave_button_pressed() -> void:
 	%NetworkManager.leave()
-	_update_controls()
+	_lobby_id = ""
 
 
 func _on_send_button_pressed() -> void:
@@ -58,3 +62,7 @@ func chat(text):
 		$ChatBox.text = text
 	else:
 		$ChatBox.text = current_text + "\n" + text
+
+func _on_lobby_created_or_joined():
+	_lobby_id = $LobbyText.text
+	_can_send_messages = true
