@@ -2,11 +2,7 @@
 extends RefCounted
 class_name WebstarSignalingClient
 
-signal socket_connected
-signal socket_connection_failed
-signal socket_disconnected
 signal peer_connected(player_id: int)
-signal peer_disconnected(player_id: int)
 signal data_received(sender_id: int, data: Dictionary)
 signal lobby_created(lobby_id, peer_id)
 signal lobby_joined(lobby_id, peer_id, player_list)
@@ -16,8 +12,6 @@ var peer_id: int = 0
 
 
 var _websocket: WebSocketPeer = null
-var _is_connecting := false
-var _is_connected := false
 var _message_handlers: Dictionary = {}
 
 
@@ -36,41 +30,27 @@ func _init() -> void:
 		# "pong": _handle_pong
 	}
 
+# =============================================================================
+# Public Methods
+# =============================================================================
+
+## Sets the websocket.  The websocket should be open and ready for communication at this point
+func set_websocket(websocket: WebSocketPeer) -> void:
+	_websocket = websocket
+	
 
 ## calls websocket.poll and handles messages
 func poll() -> void:
 	if !_websocket:
 		print("[Webstar] websocket not connected")
 		return 
-
 	_websocket.poll()
-	
-	if _is_connecting:
-		if _websocket.get_ready_state() == WebSocketPeer.State.STATE_OPEN:
-			_is_connecting = false
-			_is_connected = true
-			socket_connected.emit()			
-		elif _websocket.get_ready_state() == WebSocketPeer.State.STATE_CLOSED:
-			_is_connecting = false
-			_is_connected = false	
-			socket_connection_failed.emit()
-			_websocket = null
-		return
-	elif _is_connected:
-		_read_packets()
-	
-
-## Starts connecting to the signaling server 
-func start_connecting(url: String) -> void:  #todo: add timeout parameter
-	_websocket = WebSocketPeer.new()
-	_websocket.connect_to_url(url)
-	_is_connecting = true
-	_is_connected = false
-	
+	_read_packets()
+		
 
 ## Sends a message to the signaling server
 func send_message(message: Dictionary) -> void:
-	if _websocket and _is_connected:
+	if _websocket:
 		var json_string = JSON.stringify(message)
 		_websocket.send_text(json_string)
 		print("[WebstarManager] Sending message: ", json_string)
@@ -78,8 +58,7 @@ func send_message(message: Dictionary) -> void:
 
 ## Disconnects from the signaling server
 func disconnect_from_sever() -> void:
-	_websocket = null
-	socket_disconnected.emit()
+	_websocket = null	
 	
 
 ## Reads incoming packets and process them using registered message handers

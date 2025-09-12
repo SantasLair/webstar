@@ -6,7 +6,7 @@ var _can_send_messages = false
 func _ready() -> void:
 	%NetworkManager.lobby_created.connect(_on_lobby_created_or_joined)
 
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	_update_controls()
 
 

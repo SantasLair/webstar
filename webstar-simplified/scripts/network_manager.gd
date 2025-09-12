@@ -9,14 +9,12 @@ signal lobby_joined
 
 
 # WebStar specific settings
-var webstar_server_url = "ws://localhost:5090/ws"
 var webstar: WebstarManager = null
 var status = ""
 
 func _ready():
 	multiplayer.peer_connected.connect(_on_player_connected)
 	multiplayer.peer_disconnected.connect(_on_player_disconnected)
-	multiplayer.connected_to_server.connect(_on_connected_ok)
 	multiplayer.connection_failed.connect(_on_connected_fail)
 	multiplayer.server_disconnected.connect(_on_server_disconnected)
 	
@@ -24,9 +22,16 @@ func _ready():
 	if not use_enet:
 		webstar = WebstarManager
 		webstar.lobby_created.connect(_on_lobby_created)
-		webstar.connect_to_signaling_server(webstar_server_url)
+		webstar.connect_to_signaling_server_async()
 
+# =============================================================================
+# Public Methods
+# =============================================================================
 
+## Create a lobby
+##
+## emits signal lobby_created 
+# todo: add error handling, create_lobby_failed
 func create_lobby(lobby_name):
 	print("creating lobby %s" % [lobby_name])
 	
@@ -42,12 +47,12 @@ func create_lobby(lobby_name):
 			print("lobby created")
 	else:		
 		webstar.create_lobby(lobby_name, 8, false)
-	
-
-func _on_lobby_created(lobby_id, peer_id):
-	lobby_created.emit()	
 		
 
+## Join a lobby
+##
+## emits signal lobby_joined
+# todo: add error handling, lobby_join_failed
 func join_lobby(lobby_name):
 	print("joining lobby %s" % [lobby_name])
 	
@@ -60,12 +65,7 @@ func join_lobby(lobby_name):
 		else:
 			multiplayer.multiplayer_peer = peer
 			status = "connecting to lobby"
-	else:
-		# WebStar implementation
-		if not webstar:
-			print("ERROR: WebStar not initialized")
-			return
-		
+	else:		
 		status = "joining WebStar lobby..."
 		var success = await webstar.join_lobby(lobby_name)
 		if success:
@@ -81,35 +81,39 @@ func leave():
 		# ENet cleanup
 		multiplayer.multiplayer_peer = null
 	else:
-		# WebStar cleanup
-		#if webstar_manager and webstar_manager.has_method("leave_lobby"):
-		#	webstar_manager.leave_lobby()
+		webstar.leave_lobby()
 		multiplayer.multiplayer_peer = null
 	
 	status = ""
 	%NetworkUI._update_controls()
 
+	
+# =============================================================================
+# Signal Handlers
+# =============================================================================
+
+func _on_lobby_created(_lobby_id, _peer_id):
+	lobby_created.emit()	
+	
+
 # ENet event handlers
 func _on_player_connected(id):
 	print("player %s connected" % [id])
+	
 
 func _on_player_disconnected(id):
 	print("player %s disconnected" % [id])
-
-func _on_connected_ok():
-	print("connected ok")
-	status = "connected to lobby" if use_enet else "connected to WebStar lobby"
-	%NetworkUI._update_controls()
+	
 
 func _on_connected_fail():
 	print("connection failed")
 	status = ""
-	%NetworkUI._update_controls()
+	
 
 func _on_server_disconnected():
 	print("server disconnected")
 	status = ""
-	%NetworkUI._update_controls()
+	
 
 # WebStar event handlers
 func _on_webstar_lobby_joined(lobby_id: String, player_number: int):
@@ -127,7 +131,6 @@ func _on_webstar_lobby_joined(lobby_id: String, player_number: int):
 	#else:
 	#	status = "connected to WebStar lobby"
 	
-	%NetworkUI._update_controls()
 
 func _on_webstar_player_joined(player_id: int, player_info: Dictionary):
 	print("WebStar player joined: %d, info: %s" % [player_id, player_info])
@@ -138,11 +141,11 @@ func _on_webstar_player_left(player_id: int):
 func _on_webstar_connection_failed(reason: String):
 	print("WebStar connection failed: %s" % reason)
 	status = ""
-	%NetworkUI._update_controls()
+
 
 func _on_webrtc_connection_state_changed(player_id: int, state: String):
 	print("WebRTC connection to player %d changed to: %s" % [player_id, state])
-	%NetworkUI._update_controls()  # Update UI when connection state changes
+
 
 func _on_webrtc_ready():
 	pass

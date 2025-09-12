@@ -21,4 +21,4 @@ WebstarManager="*res://webstar/webstar_manager.gd"
 
 [editor_plugins]
 
-enabled=PackedStringArray()
+enabled=PackedStringArray("res://addons/script-ide/plugin.cfg")
