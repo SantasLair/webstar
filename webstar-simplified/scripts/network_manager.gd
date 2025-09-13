@@ -20,7 +20,7 @@ func _ready():
 	
 	# Initialize WebStar if not using ENet
 	if not use_enet:
-		webstar = WebstarManager
+		webstar = %WebstarManager
 		webstar.lobby_created.connect(_on_lobby_created)
 		webstar.connect_to_signaling_server_async()
 
