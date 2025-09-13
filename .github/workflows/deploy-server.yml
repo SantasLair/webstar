@@ -64,6 +64,21 @@ jobs:
           mkdir -p /opt/webstar
           cd /opt/webstar
           
+          # Download latest config files from repo
+          curl -o docker-compose.yml https://raw.githubusercontent.com/SantasLair/webstar/main/docker-compose.yml
+          curl -o nginx.conf https://raw.githubusercontent.com/SantasLair/webstar/main/nginx.conf
+          
+          # Create .env file with domain info
+          cat > .env << 'EOF'
+          DOMAIN_NAME=${{ secrets.DOMAIN_NAME }}
+          CERTBOT_EMAIL=${{ secrets.CERTBOT_EMAIL }}
+          LETSENCRYPT_STAGING=0
+          EOF
+          
+          # Source environment variables
+          export DOMAIN_NAME="${{ secrets.DOMAIN_NAME }}"
+          export CERTBOT_EMAIL="${{ secrets.CERTBOT_EMAIL }}"
+          
           # Create docker network if it doesn't exist
           docker network create nginx-network 2>/dev/null || true
           
@@ -73,56 +88,87 @@ jobs:
           # Pull the latest image
           docker pull ghcr.io/santaslair/webstar-server:latest
           
-          # Stop and remove existing container
-          docker stop webstar-server || true
-          docker rm webstar-server || true
+          # Stop existing containers
+          docker-compose --profile production down || true
+          docker stop webstar-server nginx certbot 2>/dev/null || true
+          docker rm webstar-server nginx certbot 2>/dev/null || true
           
-          # Run new container
+          # Start the application server first
           docker run -d \
             --name webstar-server \
             --restart unless-stopped \
             --network nginx-network \
-            -p 5090:5090 \
+            -e ASPNETCORE_ENVIRONMENT=Production \
+            -e ASPNETCORE_URLS="http://+:5090" \
             --health-cmd="curl -f http://localhost:5090/health || exit 1" \
             --health-interval=30s \
             --health-timeout=10s \
             --health-retries=3 \
-            -e ASPNETCORE_ENVIRONMENT=Production \
             ghcr.io/santaslair/webstar-server:latest
           
-          # Setup nginx and SSL if not already done
-          if [ ! -f docker-compose.yml ]; then
-            # Download docker-compose.yml and nginx.conf from repo
-            curl -o docker-compose.yml https://raw.githubusercontent.com/SantasLair/webstar/main/docker-compose.yml
-            curl -o nginx.conf https://raw.githubusercontent.com/SantasLair/webstar/main/nginx.conf
+          # Wait for application server to be ready
+          sleep 15
+          
+          # Check if SSL certificates already exist
+          if [ ! -d "/var/lib/docker/volumes/webstar_certbot-etc/_data/live/${{ secrets.DOMAIN_NAME }}" ]; then
+            echo "Setting up SSL certificates..."
             
-            # Create .env file with secrets
-            cat > .env << EOF
-          DOMAIN_NAME=${{ secrets.DOMAIN_NAME }}
-          CERTBOT_EMAIL=${{ secrets.CERTBOT_EMAIL }}
-          LETSENCRYPT_STAGING=0
-          EOF
+            # Start nginx for Let's Encrypt challenge (HTTP only first)
+            docker run -d \
+              --name nginx-temp \
+              --network nginx-network \
+              -p 80:80 \
+              -v /opt/webstar/nginx-temp.conf:/etc/nginx/nginx.conf:ro \
+              -v webstar_web-root:/var/www/html \
+              nginx:alpine
             
-            # Start nginx and get SSL certificates
-            export DOMAIN_NAME=${{ secrets.DOMAIN_NAME }}
-            export CERTBOT_EMAIL=${{ secrets.CERTBOT_EMAIL }}
+            # Create temporary nginx config for Let's Encrypt challenge
+            cat > nginx-temp.conf << 'NGINX_EOF'
+          events { worker_connections 1024; }
+          http {
+            server {
+              listen 80;
+              server_name _;
+              location /.well-known/acme-challenge/ {
+                root /var/www/html;
+              }
+              location / {
+                return 200 "Nginx ready for SSL setup";
+                add_header Content-Type text/plain;
+              }
+            }
+          }
+          NGINX_EOF
             
-            # Start nginx first for Let's Encrypt challenge
-            docker-compose --profile production up -d nginx
-            sleep 10
+            # Reload nginx with temp config
+            docker exec nginx-temp nginx -s reload
+            sleep 5
             
             # Get SSL certificate
-            docker-compose --profile production run --rm certbot
+            docker run --rm \
+              --network nginx-network \
+              -v webstar_certbot-etc:/etc/letsencrypt \
+              -v webstar_certbot-var:/var/lib/letsencrypt \
+              -v webstar_web-root:/var/www/html \
+              certbot/certbot certonly \
+              --webroot \
+              --webroot-path=/var/www/html \
+              --email ${{ secrets.CERTBOT_EMAIL }} \
+              --agree-tos \
+              --no-eff-email \
+              --non-interactive \
+              -d ${{ secrets.DOMAIN_NAME }}
             
-            # Restart nginx with SSL
-            docker-compose --profile production restart nginx
-            
-            # Setup auto-renewal cron job
-            (crontab -l 2>/dev/null; echo "0 12 * * * cd /opt/webstar && docker-compose --profile production run --rm certbot renew && docker-compose --profile production restart nginx") | crontab -
-          else
-            # Just restart nginx if it exists
-            docker-compose --profile production restart nginx || true
+            # Stop temporary nginx
+            docker stop nginx-temp
+            docker rm nginx-temp
           fi
+          
+          # Start production services with SSL
+          docker-compose --profile production up -d
+          
+          # Setup certificate renewal cron job
+          (crontab -l 2>/dev/null | grep -v "certbot renew"; echo "0 12 * * * cd /opt/webstar && docker-compose --profile production run --rm certbot renew && docker-compose --profile production restart nginx") | crontab -
           
           # Clean up old images
           docker image prune -f
