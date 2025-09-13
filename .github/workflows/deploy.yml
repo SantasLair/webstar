@@ -96,5 +96,18 @@ jobs:
             -e ASPNETCORE_URLS=http://+:5090 \
             ghcr.io/santaslair/webstar-server:latest
           
+          # Install nginx if not present
+          which nginx || (apt update && apt install -y nginx)
+          
+          # Download and setup nginx configuration
+          curl -o /etc/nginx/nginx.conf https://raw.githubusercontent.com/SantasLair/webstar/main/nginx.conf
+          
+          # Test nginx configuration
+          nginx -t
+          
+          # Restart nginx to apply new configuration
+          systemctl restart nginx
+          systemctl enable nginx
+          
           # Clean up old images
           docker image prune -f
