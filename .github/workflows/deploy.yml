@@ -5,10 +5,13 @@ on:
     branches: [ main ]
     paths:
       - 'webstar-server-dotnet/**'
+      - 'docker-compose.yml'
   pull_request:
     branches: [ main ]
     paths:
       - 'webstar-server-dotnet/**'
+      - 'docker-compose.yml'
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
