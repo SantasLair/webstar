@@ -1,4 +1,4 @@
-name: Build and Deploy WebStar Server
+name: Deploy WebStar Server
 
 on:
   push:

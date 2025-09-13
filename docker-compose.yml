@@ -2,51 +2,10 @@ version: '3.8'
 
 services:
   webstar-server:
-    image: ghcr.io/santaslair/webstar-server:latest
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_URLS=http://+:5090
-      - VIRTUAL_HOST=dev.webstar.santaslair.net
-      - LETSENCRYPT_HOST=dev.webstar.santaslair.net
-      - LETSENCRYPT_EMAIL=damon.ellerbee@gmail.com
-    restart: unless-stopped
-    profiles:
-      - production
-
-  nginx-proxy:
-    image: nginxproxy/nginx-proxy
+    build: ./webstar-server-dotnet
     ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /var/run/docker.sock:/tmp/docker.sock:ro
-      - certs:/etc/nginx/certs
-      - vhost.d:/etc/nginx/vhost.d
-      - html:/usr/share/nginx/html
-    labels:
-      - "com.github.nginx-proxy.nginx"
-    restart: unless-stopped
-    profiles:
-      - production
-
-  letsencrypt-companion:
-    image: nginxproxy/acme-companion
-    depends_on:
-      - nginx-proxy
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - certs:/etc/nginx/certs
-      - vhost.d:/etc/nginx/vhost.d
-      - html:/usr/share/nginx/html
-      - acme:/etc/acme.sh
+      - "5090:5090"
     environment:
-      - DEFAULT_EMAIL=damon.ellerbee@gmail.com
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5090
     restart: unless-stopped
-    profiles:
-      - production
-
-volumes:
-  certs:
-  vhost.d:
-  html:
-  acme:

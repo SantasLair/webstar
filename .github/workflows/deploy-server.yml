@@ -5,10 +5,12 @@ on:
     branches: [ main ]
     paths:
       - 'webstar-server-dotnet/**'
+      - 'docker-compose.yml'
   pull_request:
     branches: [ main ]
     paths:
       - 'webstar-server-dotnet/**'
+      - 'docker-compose.yml'
   workflow_dispatch:
 
 env:
@@ -74,16 +76,15 @@ jobs:
           # Pull the latest image
           docker pull ghcr.io/santaslair/webstar-server:latest
           
-          # Stop and clean up ALL containers and orphans
-          docker-compose --profile production down --remove-orphans || true
+          # Stop and clean up existing containers
+          docker-compose down || true
           docker container prune -f || true
           
-          # Remove any existing containers manually to avoid ContainerConfig issues
-          docker stop $(docker ps -aq) 2>/dev/null || true
-          docker rm $(docker ps -aq) 2>/dev/null || true
+          # Update docker-compose.yml to use the registry image instead of building locally
+          sed -i 's|build: ./webstar-server-dotnet|image: ghcr.io/santaslair/webstar-server:latest|g' docker-compose.yml
           
-          # Start all services with the downloaded docker-compose.yml
-          docker-compose --profile production up -d
+          # Start the service
+          docker-compose up -d
           
           # Clean up old images
           docker image prune -f
