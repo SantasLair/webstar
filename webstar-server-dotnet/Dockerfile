@@ -5,6 +5,9 @@ WORKDIR /app
 # Copy the application files
 COPY . .
 
+# Remove launch settings that override URLs in production
+RUN rm -f Properties/launchSettings.json
+
 # Restore dependencies and build
 RUN dotnet restore
 RUN dotnet build -c Release

@@ -102,8 +102,49 @@ jobs:
           # Remove default nginx site
           rm -f /etc/nginx/sites-enabled/default
           
-          # Create our webstar site configuration
-          curl -o /etc/nginx/sites-available/webstar https://raw.githubusercontent.com/SantasLair/webstar/main/nginx.conf
+          # Create our webstar site configuration (without limit_req_zone)
+          cat > /etc/nginx/sites-available/webstar << 'EOF'
+          server {
+              listen 80;
+              server_name _;
+
+              location / {
+                  proxy_pass http://localhost:5090;
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto $scheme;
+                  
+                  proxy_http_version 1.1;
+                  proxy_set_header Upgrade $http_upgrade;
+                  proxy_set_header Connection "upgrade";
+                  
+                  proxy_connect_timeout 60s;
+                  proxy_send_timeout 60s;
+                  proxy_read_timeout 60s;
+              }
+
+              location /health {
+                  proxy_pass http://localhost:5090/health;
+                  proxy_set_header Host $host;
+              }
+
+              location /ws {
+                  proxy_pass http://localhost:5090;
+                  proxy_http_version 1.1;
+                  proxy_set_header Upgrade $http_upgrade;
+                  proxy_set_header Connection "upgrade";
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto $scheme;
+                  
+                  proxy_read_timeout 86400;
+                  proxy_send_timeout 86400;
+                  proxy_connect_timeout 60s;
+              }
+          }
+          EOF
           
           # Enable our site
           ln -sf /etc/nginx/sites-available/webstar /etc/nginx/sites-enabled/webstar

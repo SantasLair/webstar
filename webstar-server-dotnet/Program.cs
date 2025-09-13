@@ -163,7 +163,7 @@ app.MapGet("/", () => Results.Content(@"
 </html>", "text/html"));
 
 Console.WriteLine("Starting WebStar Server on port 5090...");
-app.Run("http://localhost:5090");
+app.Run();
 
 // WebSocket connection handler
 async Task HandleWebSocketConnection(WebSocket webSocket, HttpContext context)
