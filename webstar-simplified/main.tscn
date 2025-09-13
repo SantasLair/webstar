@@ -1,16 +1,12 @@
-[gd_scene load_steps=3 format=3 uid="uid://d0xkfsnp4if7t"]
+[gd_scene load_steps=2 format=3 uid="uid://d0xkfsnp4if7t"]
 
-[ext_resource type="Script" uid="uid://e6efkqjxd7kb" path="res://scripts/network_manager.gd" id="1_ig7tw"]
 [ext_resource type="Script" uid="uid://ge0ha75dw8o7" path="res://scripts/network_ui.gd" id="2_0xm2m"]
 
 [node name="Main" type="Node2D"]
 
-[node name="NetworkManager" type="Node" parent="."]
-unique_name_in_owner = true
-script = ExtResource("1_ig7tw")
+[node name="WebstarManager" type="Node" parent="."]
 
 [node name="NetworkUI" type="Node2D" parent="."]
-unique_name_in_owner = true
 script = ExtResource("2_0xm2m")
 
 [node name="HostButton" type="Button" parent="NetworkUI"]

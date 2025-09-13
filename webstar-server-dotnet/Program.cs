@@ -153,31 +153,39 @@ async Task HandleWebSocketConnection(WebSocket webSocket, HttpContext context)
 }
 
 // Message handler
-async Task HandleMessage(WebSocket webSocket, Peer clientInfo, string messageText)
+async Task HandleMessage(WebSocket webSocket, Peer peer, string messageText)
 {
     try
     {
         var message = JsonSerializer.Deserialize<JsonElement>(messageText);
         var messageType = message.GetProperty("type").GetString();
         
-        Console.WriteLine($"Received message from {clientInfo.Id}: {messageType}");
+        Console.WriteLine($"Received message from {peer.Id}: {messageType}");
         
         switch (messageType)
         {
             case "create_lobby":
-                await HandleCreateLobby(webSocket, clientInfo, message);
+                await HandleCreateLobby(webSocket, peer, message);
                 break;
             case "join_lobby":
-                await HandleJoinLobby(webSocket, clientInfo, message);
+                await HandleJoinLobby(webSocket, peer, message);
                 break;
             case "leave_lobby":
-                await HandleLeaveLobby(webSocket, clientInfo);
+                await HandleLeaveLobby(webSocket, peer);
                 break;
             case "lobby_message":
-                await HandleLobbyMessage(webSocket, clientInfo, message);
+                await HandleLobbyMessage(webSocket, peer, message);
                 break;
             case "get_lobbies":
                 await HandleGetLobbies(webSocket);
+                break;
+            case "send_message_to":
+            case "offer":
+            case "answer":
+                await HandleSendMessageTo(webSocket, peer, message);
+                break;
+            case "candidate":
+                await HandleSendCandidate(webSocket, peer, message);
                 break;
             case "ping":
                 await SendMessage(webSocket, new { type = "pong", timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() });
@@ -232,7 +240,6 @@ async Task HandleCreateLobby(WebSocket webSocket, Peer peer, JsonElement message
         MaxPlayers = maxPlayers,
         IsPublic = isPublic,
         HostId = peer.Id,
-        CreatedAt = DateTime.UtcNow,
         NextPeerId = 2
     };
 
@@ -246,13 +253,8 @@ async Task HandleCreateLobby(WebSocket webSocket, Peer peer, JsonElement message
     {
         type = "lobby_created",
         lobbyId,
-        lobby = new
-        {
-            id = lobby.Id,
-            name = lobby.Name,
-            maxPlayers = (int)lobby.MaxPlayers,
-            peerId = 1,
-        }
+        maxPlayers = lobby.MaxPlayers,
+        peerId = 1
     });
     
     Console.WriteLine($"Client {peer.Id} created lobby {lobbyId}");
@@ -289,18 +291,7 @@ async Task HandleJoinLobby(WebSocket webSocket, Peer peer, JsonElement message)
     {
         type = "lobby_joined",
         lobbyId,
-        lobby = new
-        {
-            id = lobbyId,
-            maxPlayers = lobby.MaxPlayers,
-            isPublic = lobby.IsPublic,
-            hostId = lobby.HostId,
-            peerId = (int)lobby.Peers[peer.Id].PeerId,
-            players = lobby.Peers.Values.Select(p => new { 
-                id = p.Id, 
-                peerId = p.PeerId,
-            })
-        }
+        peerId = peer.PeerId,
     });
 
     // Notify all players in lobby
@@ -334,8 +325,6 @@ async Task HandleLobbyMessage(WebSocket webSocket, Peer clientInfo, JsonElement 
     //    return;
     //}
 
-    
-    
     //await BroadcastToLobby(clientInfo.LobbyId, new
     //{
     //    type = "lobby_message",
@@ -363,6 +352,83 @@ async Task HandleGetLobbies(WebSocket webSocket)
         lobbies = publicLobbies
     });
 }
+
+async Task HandleSendMessageTo(WebSocket webSocket, Peer peer, JsonElement message)
+{
+    if (string.IsNullOrEmpty(peer.LobbyId))
+    {
+        await SendError(webSocket, "Not in a lobby");
+        return;
+    }
+    var lobby = lobbies.TryGetValue(peer.LobbyId, out var lobbyValue) ? lobbyValue : null;
+    if (lobby is null)
+    {
+        await SendError(webSocket, "Lobby not found");
+        return;
+    }
+    var targetPeerId = message.TryGetProperty("targetPeerId", out var targetPeerIdProperty) ? targetPeerIdProperty.GetInt32() : 0;
+    if (targetPeerId == 0)
+    {
+        await SendError(webSocket, "No targgetPeerId provided");
+        return;
+    }
+    var toPeer = lobby.Peers.Values.FirstOrDefault(p => p.PeerId == targetPeerId);
+    if (toPeer is null)
+    {
+        await SendError(webSocket, "target peer not found in lobby");
+        return;
+    }
+    var data = message.TryGetProperty("data", out var dataProperty) ? dataProperty : new JsonElement();
+
+    var type = message.GetProperty("type").GetString();
+    await SendMessage(toPeer.WebSocket, new
+    {
+        type,
+        fromPeerId = peer.PeerId,
+        data
+    });
+}
+
+async Task HandleSendCandidate(WebSocket webSocket, Peer peer, JsonElement message)
+{
+    if (string.IsNullOrEmpty(peer.LobbyId))
+    {
+        await SendError(webSocket, "Not in a lobby");
+        return;
+    }
+    var lobby = lobbies.TryGetValue(peer.LobbyId, out var lobbyValue) ? lobbyValue : null;
+    if (lobby is null)
+    {
+        await SendError(webSocket, "Lobby not found");
+        return;
+    }
+    var targetPeerId = message.TryGetProperty("targetPeerId", out var targetPeerIdProperty) ? targetPeerIdProperty.GetInt32() : 0;
+    if (targetPeerId == 0)
+    {
+        await SendError(webSocket, "No targgetPeerId provided");
+        return;
+    }
+    var toPeer = lobby.Peers.Values.FirstOrDefault(p => p.PeerId == targetPeerId);
+    if (toPeer is null)
+    {
+        await SendError(webSocket, "target peer not found in lobby");
+        return;
+    }
+
+    var mid = message.TryGetProperty("mid", out var midNameProperty) ? midNameProperty.ToString() : "";
+    var index = message.TryGetProperty("index", out var indexNameProperty) ? indexNameProperty.GetInt32() : 0;
+    var sdp = message.TryGetProperty("sdp", out var sdpNameProperty) ? sdpNameProperty.ToString() : "";
+    
+    await SendMessage(toPeer.WebSocket, new
+    {
+        type = "candidate",
+        fromPeerId = peer.PeerId,
+        mid,
+        index,
+        sdp
+    });
+}
+
 
 async Task BroadcastToLobby(int fromPeerId, Lobby lobby, object message)
 {    

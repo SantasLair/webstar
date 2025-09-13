@@ -2,24 +2,32 @@
 extends RefCounted
 class_name WebstarSignalingClient
 
-signal peer_connected(player_id: int)
-signal data_received(sender_id: int, data: Dictionary)
+signal lobby_joined(lobby: String, peer_id)
+#signal peer_disconnected(peer_id: int)
 signal lobby_created(lobby_id, peer_id)
-signal lobby_joined(lobby_id, peer_id, player_list)
+signal peer_joined(peer_id)
 
-var lobby_id: String = ""
-var peer_id: int = 0
+signal offer_received(peer_id: int, data: String)
+signal answer_received(peer_id: int, data: String)
+signal candidate_received(peer_id: int, mid: String, index: int, sdp: String)
 
+signal data_received(sender_id: int, data: Dictionary)
+
+var _lobby_id: String = ""
+var _peer_id: int = 0
 
 var _websocket: WebSocketPeer = null
 var _message_handlers: Dictionary = {}
 
 
-func _init() -> void:
+func _init(websocket: WebSocketPeer) -> void:
+	_websocket = websocket
+	
 	# register message handlers
 	_message_handlers = {
 		"lobby_joined": _handle_lobby_joined,
 		"lobby_created": _handle_lobby_created,
+		"peer_joined": _handle_peer_joined,
 		# "lobby_left": _handle_lobby_left,
 		# "peer_id": _handle_peer_id,
 		# "game_started": _handle_game_started,
@@ -32,12 +40,7 @@ func _init() -> void:
 
 # =============================================================================
 # Public Methods
-# =============================================================================
-
-## Sets the websocket.  The websocket should be open and ready for communication at this point
-func set_websocket(websocket: WebSocketPeer) -> void:
-	_websocket = websocket
-	
+# =============================================================================	
 
 ## calls websocket.poll and handles messages
 func poll() -> void:
@@ -46,7 +49,24 @@ func poll() -> void:
 		return 
 	_websocket.poll()
 	_read_packets()
+
 		
+## Sends create_lobby message to signaling server
+func create_lobby(lobby_id: String, max_players: int, is_public: bool) -> void:
+	send_message({
+		"type": "create_lobby",
+		"lobbyId": lobby_id,
+		"max_players": max_players,
+		"is_public": is_public
+	})
+
+
+func join_lobby(lobby_id: String) -> void:
+	send_message({
+		"type": "join_lobby",
+		"lobbyId": lobby_id      
+	})
+	
 
 ## Sends a message to the signaling server
 func send_message(message: Dictionary) -> void:
@@ -58,7 +78,7 @@ func send_message(message: Dictionary) -> void:
 
 ## Disconnects from the signaling server
 func disconnect_from_sever() -> void:
-	_websocket = null	
+	_websocket.close()
 	
 
 ## Reads incoming packets and process them using registered message handers
@@ -84,11 +104,20 @@ func _handle_message(data: Dictionary):
 			var sender_id = data.get("from_player_id", 0)
 			var message_data = data.get("data", {})
 			data_received.emit(sender_id, message_data)
-		"relay_player_joined":
-			var player_id = data.get("player_id", 0)
-			peer_connected.emit(player_id)
-		"relay_error":
-			push_error("Relay error: " + data.get("message", "Unknown error"))
+		"offer":
+			var fromPeerId = data.get("fromPeerId")
+			var rtcData = data.get("data")
+			offer_received.emit(fromPeerId, rtcData)
+		"answer":
+			var fromPeerId = data.get("fromPeerId")
+			var rtcData = data.get("data")
+			answer_received.emit(fromPeerId, rtcData)
+		"candidate":
+			var fromPeerId = int(data.get("fromPeerId"))
+			var mid = data.get("mid")
+			var index = int(data.get("index"))
+			var sdp = data.get("sdp")
+			candidate_received.emit(fromPeerId, mid, index, sdp)
 		_:
 			if _message_handlers.has(message_type):
 				_message_handlers[message_type].call(data)
@@ -96,16 +125,27 @@ func _handle_message(data: Dictionary):
 
 ## Handle lobby joined message			
 func _handle_lobby_joined(data: Dictionary):
-	var lobby: Dictionary = data.get("lobby")
-	lobby_id = lobby.get("lobbyId", "")
-	peer_id = int(lobby.get("peerId", 0)) 	# json parser always treats numbers as flots, we must cast
-	var player_list = lobby.get("playerList", [])
-	lobby_joined.emit(lobby_id, peer_id, player_list)
+	_lobby_id = data.get("lobbyId", "")
+	_peer_id = int(data.get("peerId", 0)) 	# json parser always treats numbers as flots, we must cast
+	lobby_joined.emit(_lobby_id, _peer_id)
 
 
 ## Handle lobby created message
 func _handle_lobby_created(data: Dictionary):
-	var lobby: Dictionary = data.get("lobby")
-	lobby_id = lobby.get("id", "uknown")
-	peer_id = int(lobby.get("peerId", 0))
-	lobby_created.emit(lobby_id, peer_id)
+	_lobby_id = data.get("lobbyId", "")
+	_peer_id = int(data.get("peerId", 0))
+	lobby_created.emit(_lobby_id, _peer_id)
+	
+
+## Handle peer_joined ... a peer joined the current lobby
+func _handle_peer_joined(data: Dictionary):
+	if _lobby_id == "":
+		print("[Webstar] Received a peer joined message while not in a lobby")
+		return
+		
+	var peer_id = int(data.get("peerId", 0))
+	if peer_id == 0:
+		print("[Webstar] Received invalid peer joined message")
+		return
+		
+	peer_joined.emit(peer_id)

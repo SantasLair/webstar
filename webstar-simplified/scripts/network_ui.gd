@@ -3,20 +3,23 @@ extends Node
 var _lobby_id = ""
 var _can_send_messages = false
 
+
 func _ready() -> void:
-	%NetworkManager.lobby_created.connect(_on_lobby_created_or_joined)
+	WebstarManager.lobby_joined.connect(_on_lobby_created_or_joined)
+	WebstarManager.lobby_created.connect(_on_lobby_created_or_joined)
+
 
 func _process(_delta: float) -> void:
 	_update_controls()
 
 
 func _on_host_button_pressed() -> void:
-	%NetworkManager.create_lobby(%LobbyText.text)
+	WebstarManager.create_lobby(%LobbyText.text, 8, true)
 	_lobby_id = "--pending--"
 
 
 func _on_join_button_pressed() -> void:
-	%NetworkManager.join_lobby(%LobbyText.text)
+	WebstarManager.join_lobby(%LobbyText.text)
 	_lobby_id = "--pending--"
 
 
@@ -63,6 +66,7 @@ func chat(text):
 	else:
 		$ChatBox.text = current_text + "\n" + text
 
-func _on_lobby_created_or_joined():
-	_lobby_id = $LobbyText.text
+
+func _on_lobby_created_or_joined(lobby: String, _peer_id: int):
+	_lobby_id = lobby
 	_can_send_messages = true
