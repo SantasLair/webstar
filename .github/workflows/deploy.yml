@@ -99,8 +99,14 @@ jobs:
           # Install nginx if not present
           which nginx || (apt update && apt install -y nginx)
           
-          # Download and setup nginx configuration
-          curl -o /etc/nginx/nginx.conf https://raw.githubusercontent.com/SantasLair/webstar/main/nginx.conf
+          # Remove default nginx site
+          rm -f /etc/nginx/sites-enabled/default
+          
+          # Create our webstar site configuration
+          curl -o /etc/nginx/sites-available/webstar https://raw.githubusercontent.com/SantasLair/webstar/main/nginx.conf
+          
+          # Enable our site
+          ln -sf /etc/nginx/sites-available/webstar /etc/nginx/sites-enabled/webstar
           
           # Test nginx configuration
           nginx -t
