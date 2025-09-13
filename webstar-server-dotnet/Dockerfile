@@ -14,7 +14,7 @@ EXPOSE 5090
 
 # Set environment variables
 ENV ASPNETCORE_ENVIRONMENT=Development
-ENV ASPNETCORE_URLS=http://+:5090
+ENV ASPNETCORE_URLS=http://0.0.0.0:5090
 
 # Start the application
 ENTRYPOINT ["dotnet", "run"]

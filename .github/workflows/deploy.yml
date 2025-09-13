@@ -93,7 +93,7 @@ jobs:
             --restart unless-stopped \
             -p 5090:5090 \
             -e ASPNETCORE_ENVIRONMENT=Production \
-            -e ASPNETCORE_URLS=http://+:5090 \
+            -e ASPNETCORE_URLS=http://0.0.0.0:5090 \
             ghcr.io/santaslair/webstar-server:latest
           
           # Install nginx if not present

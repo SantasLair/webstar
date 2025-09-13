@@ -85,7 +85,82 @@ app.Use(async (context, next) =>
     }
 });
 
-app.MapGet("/", () => "WebStar Server .NET 9");
+app.MapGet("/", () => Results.Content(@"
+<!DOCTYPE html>
+<html lang=""en"">
+<head>
+    <meta charset=""UTF-8"">
+    <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
+    <title>WebStar Server</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .status {
+            font-size: 1.2rem;
+            margin: 1rem 0;
+            opacity: 0.9;
+        }
+        .links {
+            margin-top: 2rem;
+        }
+        .links a {
+            color: white;
+            text-decoration: none;
+            margin: 0 1rem;
+            padding: 0.5rem 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        .links a:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        .version {
+            margin-top: 1rem;
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class=""container"">
+        <h1>🌟 WebStar Server</h1>
+        <div class=""status"">✅ Server is running and ready!</div>
+        <div class=""status"">WebRTC Signaling Server for Godot</div>
+        
+        <div class=""links"">
+            <a href=""/health"">Health Check</a>
+            <a href=""/stats"">Statistics</a>
+            <a href=""/lobbies"">Active Lobbies</a>
+        </div>
+        
+    </div>
+</body>
+</html>", "text/html"));
 
 Console.WriteLine("Starting WebStar Server on port 5090...");
 app.Run("http://localhost:5090");
