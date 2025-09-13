@@ -2,11 +2,14 @@ extends Node
 
 var _lobby_id = ""
 var _can_send_messages = false
+var _webstar: WebstarManager
 
 
 func _ready() -> void:
-	WebstarManager.lobby_joined.connect(_on_lobby_created_or_joined)
-	WebstarManager.lobby_created.connect(_on_lobby_created_or_joined)
+	_webstar = %WebstarManager
+	_webstar.lobby_joined.connect(_on_lobby_created_or_joined)
+	_webstar.lobby_created.connect(_on_lobby_created_or_joined)
+	multiplayer.peer_connected.connect(_peer_connected)
 
 
 func _process(_delta: float) -> void:
@@ -14,13 +17,17 @@ func _process(_delta: float) -> void:
 
 
 func _on_host_button_pressed() -> void:
-	WebstarManager.create_lobby(%LobbyText.text, 8, true)
+	_webstar.create_lobby(%LobbyText.text, 8, true)
 	_lobby_id = "--pending--"
 
 
 func _on_join_button_pressed() -> void:
-	WebstarManager.join_lobby(%LobbyText.text)
+	_webstar.join_lobby(%LobbyText.text)
 	_lobby_id = "--pending--"
+
+
+func _peer_connected(peer_id: int):
+	print("[Game] peer %d connected" % peer_id)
 
 
 func _update_controls():
@@ -49,7 +56,8 @@ func _add_system_message(message: String):
 
 
 func _on_leave_button_pressed() -> void:
-	%NetworkManager.leave()
+	_webstar.leave_lobby()
+	_webstar.leave_game()
 	_lobby_id = ""
 
 

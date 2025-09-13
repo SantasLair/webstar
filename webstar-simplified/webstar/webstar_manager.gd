@@ -1,14 +1,15 @@
 extends Node
-#
-#  Global Singleton AUTOLOAD: WebstarManager
-#
+## WebstarManager connects to signaling server and orchestrates WebRTC connections
+##
+class_name WebstarManager
+
 
 signal signaling_server_connected
 signal signaling_server_connection_failed
 signal lobby_created(lobby_id, peer_id)
 signal lobby_joined(lobby_id, peer_id)
 
-var _server_url := "ws://localhost:5090/ws"
+var _server_url := "ws://dev.webstar.santaslair.net/ws"
 var _connect_timeout_seconds := 5
 var _lobby: String = ""	
 var _is_connecting: bool = false
@@ -17,23 +18,22 @@ var _is_in_lobby: bool = false
 var _peer_id: int = 0
 var _lobby_id: String = ""
 var _is_host: bool = false
+var _is_mutiplayer_set = false
 
 var _signal_client: WebstarSignalingClient = null
-var _rtc_mp: WebRTCMultiplayerPeer = WebRTCMultiplayerPeer.new()
+var _rtc_mp: WebRTCMultiplayerPeer = WebRTCMultiplayerPeer.new()	
 
-func _ready() -> void:
-	set_process(false)
-	
 func _process(_delta: float) -> void:
-	_signal_client.poll()
+	if _signal_client:
+		_signal_client.poll()
 	_rtc_mp.poll()	
 	
 	# check webrtc peer statuses
-	var peer_ids = _rtc_mp.get_peers()
-	for key in peer_ids:
-		var peer_info = _rtc_mp.get_peer(key)
-		if peer_info["connected"]:
-			print("RTC connected to peer")
+	#var peer_ids = _rtc_mp.get_peers()
+	#for key in peer_ids:
+	#	var peer_info = _rtc_mp.get_peer(key)
+	#	if peer_info["connected"]:
+	#		print("RTC connected to peer")
 	
 
 ## Async Connects to the singnaling server.  Raises signal signaling_server_connected
@@ -122,6 +122,7 @@ func join_lobby(lobby_id: String):
 	return true
 
 
+## closes connection to the signaling server, leaving the lobby
 func leave_lobby():
 	if _is_in_lobby:
 		_signal_client.disconnect_from_sever()
@@ -129,7 +130,13 @@ func leave_lobby():
 		_is_in_lobby = false
 		_is_connecting = false
 		_lobby_id = ""
-	
+		
+
+## closes WebRTCConnections, if any	
+func leave_game():
+	_rtc_mp.close()
+
+
 # =============================================================================
 # Signal handlers
 # =============================================================================
@@ -184,6 +191,11 @@ func _create_peer(peer_id: int) -> WebRTCPeerConnection:
 	if _peer_id == 1:                 
 		print("[Webstar] I am host, creating an offer")
 		peer.create_offer()
+	
+	if !_is_mutiplayer_set:
+		multiplayer.multiplayer_peer = _rtc_mp
+		_is_mutiplayer_set = true
+		
 	return peer
 
 

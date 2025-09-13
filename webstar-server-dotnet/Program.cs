@@ -447,47 +447,47 @@ async Task BroadcastToLobby(int fromPeerId, Lobby lobby, object message)
 
 async Task RemovePlayerFromLobby(string lobbyId, string playerId)
 {
-    //if (!lobbies.TryGetValue(lobbyId, out var lobby))
-    //    return;
-    
-    //lobby.Peers.TryRemove(playerId, out _);
-    
-    //// Remove client's lobby reference
-    //var clientToUpdate = clients.Values.FirstOrDefault(c => c.Id == playerId);
-    //if (clientToUpdate != null)
-    //{
-    //    clientToUpdate.LobbyId = null;
-    //}
-    
-    //if (lobby.Peers.Count == 0)
-    //{
-    //    // Remove empty lobby
-    //    lobbies.TryRemove(lobbyId, out _);
-    //    Console.WriteLine($"Removed empty lobby {lobbyId}");
-    //}
-    //else
-    //{
-    //    // Notify remaining players
-    //    await BroadcastToLobby(lobbyId, new
-    //    {
-    //        type = "player_left",
-    //        playerId = playerId
-    //    });
-        
-    //    // If the host left, assign new host
-    //    if (lobby.HostId == playerId)
-    //    {
-    //        var newHost = lobby.Peers.Values.First();
-    //        newHost.IsHost = true;
-    //        lobby.HostId = newHost.Id;
-            
-    //        await BroadcastToLobby(lobbyId, new
-    //        {
-    //            type = "host_changed",
-    //            newHostId = newHost.Id
-    //        });
-    //    }
-    //}
+    if (!lobbies.TryGetValue(lobbyId, out var lobby))
+        return;
+
+    lobby.Peers.TryRemove(playerId, out _);
+
+    // Remove client's lobby reference
+    var clientToUpdate = clients.Values.FirstOrDefault(c => c.Id == playerId);
+    if (clientToUpdate != null)
+    {
+        clientToUpdate.LobbyId = null;
+    }
+
+    if (lobby.Peers.Count == 0)
+    {
+        // Remove empty lobby
+        lobbies.TryRemove(lobbyId, out _);
+        Console.WriteLine($"Removed empty lobby {lobbyId}");
+    }
+    else
+    {
+        //// Notify remaining players
+        //await BroadcastToLobby(lobbyId, new
+        //{
+        //    type = "player_left",
+        //    playerId = playerId
+        //});
+
+        //// If the host left, assign new host
+        //if (lobby.HostId == playerId)
+        //{
+        //    var newHost = lobby.Peers.Values.First();
+        //    newHost.IsHost = true;
+        //    lobby.HostId = newHost.Id;
+
+        //    await BroadcastToLobby(lobbyId, new
+        //    {
+        //        type = "host_changed",
+        //        newHostId = newHost.Id
+        //    });
+        //}
+    }
 }
 
 string GenerateLobbyId()
