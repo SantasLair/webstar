@@ -3,6 +3,7 @@ extends Node
 var _lobby_id = ""
 var _can_send_messages = false
 var _webstar: WebstarManager
+var _peer_id: int = 0
 
 
 func _ready() -> void:
@@ -10,6 +11,10 @@ func _ready() -> void:
 	_webstar.lobby_joined.connect(_on_lobby_created_or_joined)
 	_webstar.lobby_created.connect(_on_lobby_created_or_joined)
 	multiplayer.peer_connected.connect(_peer_connected)
+	multiplayer.peer_disconnected.connect(_peer_disconnected)
+	multiplayer.connected_to_server.connect(_connected_to_server)	
+	multiplayer.server_disconnected.connect(_server_disconnected)
+	
 
 
 func _process(_delta: float) -> void:
@@ -19,16 +24,37 @@ func _process(_delta: float) -> void:
 func _on_host_button_pressed() -> void:
 	_webstar.create_lobby(%LobbyText.text, 8, true)
 	_lobby_id = "--pending--"
+	_peer_id = 1
 
 
 func _on_join_button_pressed() -> void:
 	_webstar.join_lobby(%LobbyText.text)
 	_lobby_id = "--pending--"
+	
+	
 
+# ==============================================================================
+# Multiplayer API Signals
+# ==============================================================================
 
 func _peer_connected(peer_id: int):
-	print("[Game] peer %d connected" % peer_id)
+	chat("--- PEER %s ARRIVED! ---" % peer_id)
 
+func _peer_disconnected(peer_id: int):
+	chat("--- PEER %s LEFT ---" % peer_id)
+	
+func _connected_to_server():
+	_peer_id = multiplayer.get_unique_id()
+	chat("connected as peer %d" % _peer_id)
+	
+func _server_disconnected():
+	if _peer_id == 1:
+		chat("-- HOST CLOSED --")
+	else:
+		chat("-- DISCONNECTED FROM HOST --")
+	_lobby_id = ""
+
+#===============================================================================
 
 func _update_controls():
 	$HostButton.disabled = _lobby_id.length() > 0
@@ -62,7 +88,7 @@ func _on_leave_button_pressed() -> void:
 
 
 func _on_send_button_pressed() -> void:
-	chat.rpc($MessageText.text)
+	chat.rpc("peer%s: %s" % [str(_peer_id), $MessageText.text])
 
 
 #quick and dirty messaging
