@@ -1,5 +1,5 @@
-# Use the official .NET 9 runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:9.0
+# Use the official .NET 9 SDK image (includes both SDK and runtime)
+FROM mcr.microsoft.com/dotnet/sdk:9.0
 WORKDIR /app
 
 # Copy the application files
