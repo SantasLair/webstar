@@ -11,7 +11,21 @@
 
 WebStar provides **star topology networking** for Godot 4, combining **WebRTC peer-to-peer connections** with **WebSocket signaling** to create scalable, low-latency multiplayer experiences. Perfect for 2-8 player games requiring real-time synchronization.
 
-## 🎯 **How WebStar Works**
+## **Webstar-Simplified**
+TLDR: A built-in class exists that does most of what we need to do: WebWebRTCMultiplayerPeer. This class handles mesh and star topologies, and integrates with the multiplayer API. Signaling is not automatic.  Using this class I have created webstar-simplified POC to serve as a testbed prior to codifying it into an add-on. It current works with the signaling server and estabishes a single client-server WebRTC connect.
+
+### What I plan to do next:
+- Finish the basic POC to be a little more polished and full-featured
+- Convert to addon with the goal "it just works" feeling
+- Cleanup to remove old dev addon and now-useless tests
+- Easy switch between star or mesh topology
+- Optional automatic host migration - supported by the signaling server
+- A few demo games - preferably converting existing multiplayer demos to use Webstar
+
+## ⚠️ **The remainder of this document is AI-Generated rough draft ** ⚠️
+This will be refined over time as the project makes progress.
+
+## **How WebStar Works**
 
 ### **Star Topology Architecture**
 ```
