@@ -9,6 +9,7 @@ on:
     branches: [ main ]
     paths:
       - 'webstar-server-dotnet/**'
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
