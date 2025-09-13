@@ -39,5 +39,3 @@ config.local.*
 dist/
 build/
 release/
-webstar-server-dotnet/obj/Debug/net9.0/WebStarServer.AssemblyInfo.cs
-webstar-server-dotnet/obj/Debug/net9.0/WebStarServer.AssemblyInfo.cs
