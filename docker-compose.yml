@@ -12,12 +12,6 @@ services:
       - LETSENCRYPT_HOST=dev.webstar.santaslair.net
       - LETSENCRYPT_EMAIL=damon.ellerbee@gmail.com
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5090/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
     profiles:
       - production
 
@@ -31,6 +25,8 @@ services:
       - certs:/etc/nginx/certs
       - vhost.d:/etc/nginx/vhost.d
       - html:/usr/share/nginx/html
+    labels:
+      - "com.github.nginx-proxy.nginx"
     restart: unless-stopped
     profiles:
       - production
