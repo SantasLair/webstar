@@ -2,9 +2,7 @@ version: '3.8'
 
 services:
   webstar-server:
-    build:
-      context: ./webstar-server-dotnet
-      dockerfile: Dockerfile
+    image: ghcr.io/santaslair/webstar-server:latest
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:5090

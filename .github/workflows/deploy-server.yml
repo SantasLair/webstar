@@ -74,72 +74,15 @@ jobs:
           # Pull the latest image
           docker pull ghcr.io/santaslair/webstar-server:latest
           
-          # Stop existing containers
-          docker-compose --profile production down || true
-          docker stop webstar-server nginx-proxy letsencrypt-companion 2>/dev/null || true
-          docker rm webstar-server nginx-proxy letsencrypt-companion 2>/dev/null || true
+          # Stop and clean up ALL containers and orphans
+          docker-compose --profile production down --remove-orphans || true
+          docker container prune -f || true
           
-          # Create updated docker-compose.yml with prebuilt image
-          cat > docker-compose.yml << 'EOF'
-          version: '3.8'
+          # Remove any existing containers manually to avoid ContainerConfig issues
+          docker stop $(docker ps -aq) 2>/dev/null || true
+          docker rm $(docker ps -aq) 2>/dev/null || true
           
-          services:
-            webstar-server:
-              image: ghcr.io/santaslair/webstar-server:latest
-              environment:
-                - ASPNETCORE_ENVIRONMENT=Production
-                - ASPNETCORE_URLS=http://+:5090
-                - VIRTUAL_HOST=dev.webstar.santaslair.net
-                - LETSENCRYPT_HOST=dev.webstar.santaslair.net
-                - LETSENCRYPT_EMAIL=damon.ellerbee@gmail.com
-              restart: unless-stopped
-              healthcheck:
-                test: ["CMD", "curl", "-f", "http://localhost:5090/health"]
-                interval: 30s
-                timeout: 10s
-                retries: 3
-                start_period: 40s
-              profiles:
-                - production
-          
-            nginx-proxy:
-              image: nginxproxy/nginx-proxy
-              ports:
-                - "80:80"
-                - "443:443"
-              volumes:
-                - /var/run/docker.sock:/tmp/docker.sock:ro
-                - certs:/etc/nginx/certs
-                - vhost.d:/etc/nginx/vhost.d
-                - html:/usr/share/nginx/html
-              restart: unless-stopped
-              profiles:
-                - production
-          
-            letsencrypt-companion:
-              image: nginxproxy/acme-companion
-              depends_on:
-                - nginx-proxy
-              volumes:
-                - /var/run/docker.sock:/var/run/docker.sock:ro
-                - certs:/etc/nginx/certs
-                - vhost.d:/etc/nginx/vhost.d
-                - html:/usr/share/nginx/html
-                - acme:/etc/acme.sh
-              environment:
-                - DEFAULT_EMAIL=damon.ellerbee@gmail.com
-              restart: unless-stopped
-              profiles:
-                - production
-          
-          volumes:
-            certs:
-            vhost.d:
-            html:
-            acme:
-          EOF
-          
-          # Start all services
+          # Start all services with the downloaded docker-compose.yml
           docker-compose --profile production up -d
           
           # Clean up old images
