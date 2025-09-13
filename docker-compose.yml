@@ -20,7 +20,7 @@ services:
       retries: 3
       start_period: 40s
 
-  # Optional: Add a reverse proxy for production-like setup
+  # Nginx with Let's Encrypt support
   nginx:
     image: nginx:alpine
     ports:
@@ -28,8 +28,30 @@ services:
       - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/ssl/certs:ro
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+      - web-root:/var/www/html
     depends_on:
       - webstar-server
     restart: unless-stopped
     profiles:
       - production
+
+  # Certbot for Let's Encrypt certificates
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+      - web-root:/var/www/html
+    depends_on:
+      - nginx
+    command: certonly --webroot --webroot-path=/var/www/html --email ${CERTBOT_EMAIL} --agree-tos --no-eff-email --force-renewal -d ${DOMAIN_NAME}
+    profiles:
+      - production
+
+volumes:
+  certbot-etc:
+  certbot-var:
+  web-root:

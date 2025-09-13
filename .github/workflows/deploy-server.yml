@@ -60,6 +60,13 @@ jobs:
         username: ${{ secrets.DO_USERNAME }}
         key: ${{ secrets.DO_PRIVATE_KEY }}
         script: |
+          # Create project directory if it doesn't exist
+          mkdir -p /opt/webstar
+          cd /opt/webstar
+          
+          # Create docker network if it doesn't exist
+          docker network create nginx-network 2>/dev/null || true
+          
           # Login to GitHub Container Registry
           echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
           
@@ -74,13 +81,48 @@ jobs:
           docker run -d \
             --name webstar-server \
             --restart unless-stopped \
-            -p 80:5090 \
-            -p 443:5090 \
+            --network nginx-network \
+            -p 5090:5090 \
             --health-cmd="curl -f http://localhost:5090/health || exit 1" \
             --health-interval=30s \
             --health-timeout=10s \
             --health-retries=3 \
+            -e ASPNETCORE_ENVIRONMENT=Production \
             ghcr.io/santaslair/webstar-server:latest
+          
+          # Setup nginx and SSL if not already done
+          if [ ! -f docker-compose.yml ]; then
+            # Download docker-compose.yml and nginx.conf from repo
+            curl -o docker-compose.yml https://raw.githubusercontent.com/SantasLair/webstar/main/docker-compose.yml
+            curl -o nginx.conf https://raw.githubusercontent.com/SantasLair/webstar/main/nginx.conf
+            
+            # Create .env file with secrets
+            cat > .env << EOF
+          DOMAIN_NAME=${{ secrets.DOMAIN_NAME }}
+          CERTBOT_EMAIL=${{ secrets.CERTBOT_EMAIL }}
+          LETSENCRYPT_STAGING=0
+          EOF
+            
+            # Start nginx and get SSL certificates
+            export DOMAIN_NAME=${{ secrets.DOMAIN_NAME }}
+            export CERTBOT_EMAIL=${{ secrets.CERTBOT_EMAIL }}
+            
+            # Start nginx first for Let's Encrypt challenge
+            docker-compose --profile production up -d nginx
+            sleep 10
+            
+            # Get SSL certificate
+            docker-compose --profile production run --rm certbot
+            
+            # Restart nginx with SSL
+            docker-compose --profile production restart nginx
+            
+            # Setup auto-renewal cron job
+            (crontab -l 2>/dev/null; echo "0 12 * * * cd /opt/webstar && docker-compose --profile production run --rm certbot renew && docker-compose --profile production restart nginx") | crontab -
+          else
+            # Just restart nginx if it exists
+            docker-compose --profile production restart nginx || true
+          fi
           
           # Clean up old images
           docker image prune -f

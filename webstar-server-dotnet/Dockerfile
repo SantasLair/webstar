@@ -27,12 +27,13 @@ COPY --from=build /app/publish .
 RUN chown -R webstar:webstar /app
 USER webstar
 
-# Expose the port the app runs on
+# Expose the ports the app runs on
 EXPOSE 5090
+EXPOSE 5091
 
 # Set environment variables for production
 ENV ASPNETCORE_ENVIRONMENT=Production
-ENV ASPNETCORE_URLS=http://+:5090
+ENV ASPNETCORE_URLS=http://+:5090;https://+:5091
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \

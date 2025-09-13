@@ -9,7 +9,7 @@ signal signaling_server_connection_failed
 signal lobby_created(lobby_id, peer_id)
 signal lobby_joined(lobby_id, peer_id)
 
-var _server_url := "ws://dev.webstar.santaslair.net/ws"
+var _server_url := "wss://dev.webstar.santaslair.net/ws"
 var _connect_timeout_seconds := 5
 var _lobby: String = ""	
 var _is_connecting: bool = false
