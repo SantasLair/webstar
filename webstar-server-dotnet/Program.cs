@@ -158,6 +158,11 @@ app.MapGet("/", () => Results.Content(@"
             <a href=""/lobbies"">Active Lobbies</a>
         </div>
         
+        <div class=""links"">
+            <a href=""https://damon-ellerbee.itch.io/test"" target=""_blank"">🎮 Try MVP Demo</a>
+            <a href=""https://github.com/SantasLair/webstar"" target=""_blank"">📂 GitHub Repository</a>
+        </div>
+        
     </div>
 </body>
 </html>", "text/html"));
