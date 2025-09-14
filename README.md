@@ -3,7 +3,7 @@
 ## 🚀 **MVP Status: FUNCTIONAL** 
 
 **✅ WebStar MVP is live and working!**  
-🎮 **[Try the Demo](https://dev.webstar.santaslair.net/game/)** - Real-time WebRTC chat through multiplayer API (not pretty but it works)  
+🎮 **[Try the Demo](https://damon-ellerbee.itch.io/test)** - Real-time WebRTC chat through multiplayer API (not pretty but it works)  
 🌐 **[Server Status](https://dev.webstar.santaslair.net/)** - Live signaling server with SSL/WSS support  
 📊 **[Production Deployment](https://github.com/SantasLair/webstar/actions)** - Automated CI/CD pipeline  
 
