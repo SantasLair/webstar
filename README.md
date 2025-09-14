@@ -1,5 +1,16 @@
 # WebStar 🌟
 
+## 🚀 **MVP Status: FUNCTIONAL** 
+
+**✅ WebStar MVP is live and working!**  
+🎮 **[Try the Demo](https://dev.webstar.santaslair.net/game/)** - Real-time WebRTC chat through multiplayer API (not pretty but it works)  
+🌐 **[Server Status](https://dev.webstar.santaslair.net/)** - Live signaling server with SSL/WSS support  
+📊 **[Production Deployment](https://github.com/SantasLair/webstar/actions)** - Automated CI/CD pipeline  
+
+*The core WebRTC star topology networking is functional and deployed. Current focus: UI polish and addon packaging.*
+
+---
+
 **Modern WebRTC Star Topology Networking for Godot 4**
 
 [![Godot 4.4+](https://img.shields.io/badge/Godot-4.4+-blue.svg)](https://godotengine.org/)
@@ -14,8 +25,10 @@ WebStar provides **star topology networking** for Godot 4, combining **WebRTC pe
 ## **Webstar-Simplified**
 TLDR: A built-in class exists that does most of what we need to do: WebWebRTCMultiplayerPeer. This class handles mesh and star topologies, and integrates with the multiplayer API. Signaling is not automatic.  Using this class I have created webstar-simplified POC to serve as a testbed prior to codifying it into an add-on. It current works with the signaling server and estabishes a single client-server WebRTC connect.
 
+Try the very ugly but functional demo here: https://damon-ellerbee.itch.io/test
+
 ### What I plan to do next:
-- Finish the basic POC to be a little more polished and full-featured
+[X] Finish the basic POC (done, deployed to itch.io, works but ugly)
 - Convert to addon with the goal "it just works" feeling
 - Cleanup to remove old dev addon and now-useless tests
 - Easy switch between star or mesh topology
