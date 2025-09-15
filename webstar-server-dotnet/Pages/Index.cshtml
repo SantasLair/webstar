@@ -11,76 +11,221 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewData["Title"]</title>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        * {
             margin: 0;
             padding: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #2a3441;
+            color: #ffffff;
+            line-height: 1.6;
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        }
+        
+        .header {
+            background: #355570;
             color: white;
-        }
-        .container {
+            padding: 2rem 0;
             text-align: center;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 2rem;
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
-            border: 1px solid rgba(255, 255, 255, 0.18);
         }
-        h1 {
+        
+        .header h1 {
             font-size: 3rem;
-            margin-bottom: 1rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            font-weight: 600;
+            margin: 0;
         }
-        .status {
-            font-size: 1.2rem;
-            margin: 1rem 0;
+        
+        .header .subtitle {
+            font-size: 1.1rem;
             opacity: 0.9;
+            margin-top: 0.5rem;
         }
-        .links {
-            margin-top: 2rem;
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
         }
-        .links a {
+        
+        .status-section {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .status {
+            background: #1e5128;
+            border: 1px solid #2d7738;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            font-size: 1.1rem;
+            color: #ffffff;
+        }
+        
+        .nav-section {
+            margin: 2rem 0;
+        }
+        
+        .nav-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #478cbf;
+        }
+        
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .nav-card {
+            background: #3e4a59;
+            border: 1px solid #4a5568;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-decoration: none;
+            color: #ffffff;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .nav-card:hover {
+            background: #4a5568;
+            border-color: #478cbf;
+            box-shadow: 0 4px 16px rgba(71, 140, 191, 0.2);
+            transform: translateY(-2px);
+            color: #ffffff;
+            text-decoration: none;
+        }
+        
+        .nav-card h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #87ceeb;
+        }
+        
+        .nav-card p {
+            font-size: 0.9rem;
+            color: #b8c5d1;
+            margin: 0;
+        }
+        
+        .external-links {
+            background: #3e4a59;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .external-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .external-link {
+            background: #478cbf;
             color: white;
             text-decoration: none;
-            margin: 0 1rem;
-            padding: 0.5rem 1rem;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 5px;
-            transition: all 0.3s ease;
+            padding: 1rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: block;
+            font-size: 1rem;
         }
-        .links a:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px);
+        
+        .external-link:hover {
+            background: #5aa3d9;
+            color: white;
+            text-decoration: none;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(71, 140, 191, 0.3);
         }
-        .version {
-            margin-top: 1rem;
-            opacity: 0.7;
+        
+        .footer {
+            background: #1e2329;
+            border-top: 1px solid #4a5568;
+            text-align: center;
+            padding: 2rem;
+            color: #b8c5d1;
             font-size: 0.9rem;
+        }
+        
+        @@media (max-width: 768px) {
+            .container {
+                padding: 2rem 1rem;
+            }
+            
+            .nav-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .external-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2.5rem;
+            }
         }
     </style>
 </head>
 <body>
+    <div class="header">
+        <h1>WebStar Server</h1>
+        <div class="subtitle">WebRTC Signaling Server for Godot Engine</div>
+    </div>
+    
     <div class="container">
-        <h1>🌟 WebStar Server</h1>
-        <div class="status">✅ Server is running and ready!</div>
-        <div class="status">WebRTC Signaling Server for Godot</div>
-        
-        <div class="links">
-            <a href="/health">Health Check</a>
-            <a href="/stats">Statistics</a>
-            <a href="/lobbies">Active Lobbies</a>
+        <div class="status-section">
+            <div class="status success">
+                ✅ Server is running and ready!
+            </div>
         </div>
         
-        <div class="links">
-            <a href="https://damon-ellerbee.itch.io/test" target="_blank">🎮 Try MVP Demo</a>
-            <a href="https://github.com/SantasLair/webstar" target="_blank">📂 GitHub Repository</a>
+        <div class="nav-section">
+            <h2 class="nav-title">Server Monitoring</h2>
+            <div class="nav-grid">
+                <a href="/health" class="nav-card">
+                    <h3>Health Check</h3>
+                    <p>View server health and uptime status</p>
+                </a>
+                <a href="/stats" class="nav-card">
+                    <h3>Statistics</h3>
+                    <p>Monitor active connections and lobbies</p>
+                </a>
+                <a href="/lobbies" class="nav-card">
+                    <h3>Active Lobbies</h3>
+                    <p>Browse current multiplayer sessions</p>
+                </a>
+            </div>
         </div>
         
+        <div class="external-links">
+            <h2 class="nav-title">WebStar Project</h2>
+            <div class="external-grid">
+                <a href="https://damon-ellerbee.itch.io/test" target="_blank" class="external-link">
+                    🎮 Try MVP Demo
+                </a>
+                <a href="https://github.com/SantasLair/webstar" target="_blank" class="external-link">
+                    📂 GitHub Repository
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>Powered by WebStar • Open Source WebRTC Networking for Godot</p>
     </div>
 </body>
 </html>
