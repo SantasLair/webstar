@@ -1,7 +1,7 @@
 @page "/"
 @model WebStarServer.Pages.IndexModel
 @{
-    ViewData["Title"] = "WebStar Server";
+    ViewData["Title"] = "Webstar Server";
 }
 
 <!DOCTYPE html>
@@ -44,25 +44,47 @@
             margin-top: 0.5rem;
         }
         
+        .refresh-btn {
+            background: #478cbf;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .refresh-btn:hover {
+            background: #5aa3d9;
+            transform: translateY(-1px);
+        }
+        
+        .refresh-btn:active {
+            transform: translateY(0);
+        }
+        
+        .refresh-btn.loading {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        
+        .refresh-btn .icon {
+            transition: transform 0.5s ease;
+        }
+        
+        .refresh-btn.loading .icon {
+            transform: rotate(360deg);
+        }
+        
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 3rem 2rem;
-        }
-        
-        .status-section {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-        
-        .status {
-            background: #1e5128;
-            border: 1px solid #2d7738;
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin: 1rem 0;
-            font-size: 1.1rem;
-            color: #ffffff;
         }
         
         .nav-section {
@@ -76,6 +98,27 @@
             margin-bottom: 1.5rem;
             padding-bottom: 0.5rem;
             border-bottom: 2px solid #478cbf;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .auto-refresh {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            color: #b8c5d1;
+        }
+        
+        .auto-refresh input[type="checkbox"] {
+            accent-color: #478cbf;
         }
         
         .nav-grid {
@@ -223,19 +266,25 @@
 </head>
 <body>
     <div class="header">
-        <h1>WebStar Server</h1>
+        <h1>Webstar Server</h1>
         <div class="subtitle">WebRTC Signaling Server for Godot Engine</div>
     </div>
     
     <div class="container">
-        <div class="status-section">
-            <div class="status success">
-                ✅ Server is running and ready!
-            </div>
-        </div>
-        
         <div class="nav-section">
-            <h2 class="nav-title">Server Monitoring</h2>
+            <h2 class="nav-title">
+                <span>Server Monitoring</span>
+                <div class="controls">
+                    <label class="auto-refresh">
+                        <input type="checkbox" id="auto-refresh-checkbox" checked onchange="toggleAutoRefresh()">
+                        <span id="auto-refresh-label">Auto-refresh (5s)</span>
+                    </label>
+                    <button class="refresh-btn" id="refresh-btn" onclick="manualRefresh()">
+                        <span class="icon">🔄</span>
+                        <span>Refresh</span>
+                    </button>
+                </div>
+            </h2>
             <div class="nav-grid">
                 <div class="nav-card" id="health-card">
                     <h3>Health Check</h3>
@@ -256,7 +305,7 @@
         </div>
         
         <div class="external-links">
-            <h2 class="nav-title">WebStar Project</h2>
+            <h2 class="nav-title">Webstar Project</h2>
             <div class="external-grid">
                 <a href="https://damon-ellerbee.itch.io/test" target="_blank" class="external-link">
                     🎮 Try MVP Demo
@@ -269,15 +318,106 @@
     </div>
     
     <div class="footer">
-        <p>Powered by WebStar • Open Source WebRTC Networking for Godot</p>
+        <p>Powered by Webstar • Open Source WebRTC Networking for Godot</p>
     </div>
     
     <script>
-        // Auto-refresh data every 5 seconds
-        setInterval(updateServerData, 5000);
+        let autoRefreshInterval;
+        let countdownInterval;
+        let countdownSeconds = 5;
+        
+        // Auto-refresh data every 5 seconds (if enabled)
+        function startAutoRefresh() {
+            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+            if (countdownInterval) clearInterval(countdownInterval);
+            
+            countdownSeconds = 5;
+            updateCountdownLabel();
+            
+            autoRefreshInterval = setInterval(autoRefresh, 5000);
+            countdownInterval = setInterval(updateCountdown, 1000);
+        }
+        
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+            }
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
+            document.getElementById('auto-refresh-label').textContent = 'Auto-refresh (5s)';
+        }
+        
+        function updateCountdown() {
+            countdownSeconds--;
+            if (countdownSeconds <= 0) {
+                countdownSeconds = 5;
+            }
+            updateCountdownLabel();
+        }
+        
+        function updateCountdownLabel() {
+            const label = document.getElementById('auto-refresh-label');
+            const checkbox = document.getElementById('auto-refresh-checkbox');
+            
+            if (checkbox.checked) {
+                label.textContent = `Auto-refresh (${countdownSeconds}s)`;
+            } else {
+                label.textContent = 'Auto-refresh (5s)';
+            }
+        }
         
         // Load data immediately on page load
-        document.addEventListener('DOMContentLoaded', updateServerData);
+        document.addEventListener('DOMContentLoaded', function() {
+            updateServerData();
+            startAutoRefresh();
+        });
+        
+        function toggleAutoRefresh() {
+            const checkbox = document.getElementById('auto-refresh-checkbox');
+            if (checkbox.checked) {
+                startAutoRefresh();
+            } else {
+                stopAutoRefresh();
+            }
+        }
+        
+        async function autoRefresh() {
+            const btn = document.getElementById('refresh-btn');
+            btn.classList.add('loading');
+            
+            // Reset countdown
+            countdownSeconds = 5;
+            
+            try {
+                await updateServerData();
+            } finally {
+                setTimeout(() => {
+                    btn.classList.remove('loading');
+                }, 500);
+            }
+        }
+        
+        async function manualRefresh() {
+            const btn = document.getElementById('refresh-btn');
+            btn.classList.add('loading');
+            btn.disabled = true;
+            
+            // Reset countdown when manually refreshing
+            countdownSeconds = 5;
+            updateCountdownLabel();
+            
+            try {
+                await updateServerData();
+            } finally {
+                setTimeout(() => {
+                    btn.classList.remove('loading');
+                    btn.disabled = false;
+                }, 500);
+            }
+        }
         
         async function updateServerData() {
             await Promise.all([
