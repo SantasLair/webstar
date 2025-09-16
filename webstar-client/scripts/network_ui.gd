@@ -2,33 +2,33 @@ extends Node
 
 var _lobby_id = ""
 var _can_send_messages = false
-var _webstar: WebstarManager
 var _peer_id: int = 0
 
 
 func _ready() -> void:
-	_webstar = %WebstarManager
-	_webstar.lobby_joined.connect(_on_lobby_created_or_joined)
-	_webstar.lobby_created.connect(_on_lobby_created_or_joined)
 	multiplayer.peer_connected.connect(_peer_connected)
 	multiplayer.peer_disconnected.connect(_peer_disconnected)
 	multiplayer.connected_to_server.connect(_connected_to_server)	
 	multiplayer.server_disconnected.connect(_server_disconnected)
+	Webstar.lobby_joined.connect(_on_lobby_created_or_joined)
+	Webstar.lobby_created.connect(_on_lobby_created_or_joined)
 	
-
+	#todo: refactor so that await is not required, add connected_to_lobby_server signal (failed, etc)
+	await Webstar.connect_to_lobby_server()
+	
 
 func _process(_delta: float) -> void:
 	_update_controls()
 
 
-func _on_host_button_pressed() -> void:
-	_webstar.create_lobby(%LobbyText.text, 8, true)
+func _on_host_button_pressed() -> void:	
+	Webstar.create_lobby(%LobbyText.text, 8, true)
 	_lobby_id = "--pending--"
 	_peer_id = 1
 
 
 func _on_join_button_pressed() -> void:
-	_webstar.join_lobby(%LobbyText.text)
+	Webstar.join_lobby(%LobbyText.text)
 	_lobby_id = "--pending--"
 	
 	
@@ -57,10 +57,11 @@ func _server_disconnected():
 #===============================================================================
 
 func _update_controls():
-	$HostButton.disabled = _lobby_id.length() > 0
-	$JoinButton.disabled = _lobby_id.length() > 0
-	$LeaveButton.disabled = _lobby_id.length() == 0 or _lobby_id == "--pending--"
-	$SendButton.disabled = !_can_send_messages
+	var is_in_lobby := Webstar.is_in_lobby()
+	$HostButton.disabled = is_in_lobby
+	$JoinButton.disabled = is_in_lobby
+	$LeaveButton.disabled = !is_in_lobby
+	$SendButton.disabled = !is_in_lobby
 	
 
 func _add_system_message(message: String):
@@ -82,8 +83,8 @@ func _add_system_message(message: String):
 
 
 func _on_leave_button_pressed() -> void:
-	_webstar.leave_lobby()
-	_webstar.leave_game()
+	Webstar.leave_lobby() #do we need disconnect_from_lobby_server() ?
+	Webstar.leave_game()  #disconnects fromWebRTC, should this method name change?
 	_lobby_id = ""
 
 

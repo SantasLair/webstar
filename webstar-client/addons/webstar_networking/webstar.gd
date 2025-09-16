@@ -1,14 +1,16 @@
 extends Node
-## WebstarManager connects to signaling server and orchestrates WebRTC connections
 ##
-class_name WebstarManager
-
+##  Webstar globle singleton 
+##
+##  Orchstrates / manages the WebRTC client, signal negotiation, network status
+##
 
 signal signaling_server_connected
 signal signaling_server_connection_failed
 signal lobby_created(lobby_id, peer_id)
 signal lobby_joined(lobby_id, peer_id)
 
+#todo: create an easy-to-use configuration system for users
 var _server_url := "wss://dev.webstar.santaslair.net/ws"
 var _connect_timeout_seconds := 5
 var _lobby: String = ""	
@@ -16,29 +18,54 @@ var _is_connecting: bool = false
 var _is_connected: bool = false
 var _is_in_lobby: bool = false
 var _peer_id: int = 0
-var _lobby_id: String = ""
 var _is_host: bool = false
 var _is_mutiplayer_set = false
 
 var _signal_client: WebstarSignalingClient = null
 var _rtc_mp: WebRTCMultiplayerPeer = WebRTCMultiplayerPeer.new()	
 
+
+## By default WebStar is not processing.  
+func _ready():
+	set_process(false)
+
+
 func _process(_delta: float) -> void:
 	if _signal_client:
 		_signal_client.poll()
 	_rtc_mp.poll()	
 	
-	# check webrtc peer statuses
-	#var peer_ids = _rtc_mp.get_peers()
-	#for key in peer_ids:
-	#	var peer_info = _rtc_mp.get_peer(key)
-	#	if peer_info["connected"]:
-	#		print("RTC connected to peer")
+	
+# =============================================================================
+# Public API
+# =============================================================================
+
+func enable(config = null) -> void:
+	#todo: create config type that users can pass in here in
+	set_process(true)
+	print("[Webstar] Webstar enabled")
+	
+	
+func disable() -> void:
+	set_process(false)
+	print("[Webstar] Webstar disabled")
+		
+
+func get_lobby_name() -> String:
+	return _lobby
+	
+	
+func is_in_lobby() -> bool:
+	return _lobby.length() > 0
 	
 
-## Async Connects to the singnaling server.  Raises signal signaling_server_connected
-## or signaling_server_connection_failed
-func connect_to_signaling_server_async() -> bool:
+## Webstar is more than a signaling server.  A persistent session can be 
+## maintained with the server for some features, but is not required.
+## Planned optional features: host migration, cloud saves, state tracking
+## This method must be awaited to ensure proper connection timing.
+## Example: `await Webstar.connect_to_lobby_server()`
+#todo: rewrite this method to not require await -- to make this package easier to use
+func connect_to_lobby_server() -> bool:
 	if _is_connecting or _is_connected:
 		print("[Webstar] Already connected or connecting to signaling server")
 		return false
@@ -94,9 +121,8 @@ func _connect_signals(signal_client: WebstarSignalingClient) -> void:
 ## Creates a lobby.  Lobby owners are hosts and will initiate WebRTC offers to peers.
 func create_lobby(lobby: String, max_players: int, is_public: bool) -> bool:
 	if !_is_connected:
-		_is_connected = await connect_to_signaling_server_async()
-		if !_is_connected:
-			return false
+		push_error("[Webstar] Cannot create lobby: not connected to the lobby server")
+		return false
 		
 	if _lobby != "":
 		push_warning("Already connected to a lobby")
@@ -110,9 +136,8 @@ func create_lobby(lobby: String, max_players: int, is_public: bool) -> bool:
 ## will receive WebRTC offer from host.	
 func join_lobby(lobby_id: String):
 	if !_is_connected:
-		_is_connected = await connect_to_signaling_server_async()
-		if !_is_connected:
-			return false
+		push_error("[Webstar] Cannot join lobby: not connected to the lobby server")
+		return false
 
 	if _lobby != "":
 		push_warning("Already connected to a lobby")
@@ -120,6 +145,10 @@ func join_lobby(lobby_id: String):
 
 	_signal_client.join_lobby(lobby_id)
 	return true
+
+#todo: add create_or_join_lobby()
+#      add private lobbies
+#      add passworded lobbies
 
 
 ## closes connection to the signaling server, leaving the lobby
@@ -129,7 +158,8 @@ func leave_lobby():
 		_is_connected = false
 		_is_in_lobby = false
 		_is_connecting = false
-		_lobby_id = ""
+		_lobby = ""
+		#doto: should set_process(false) be called here?
 		
 
 ## closes WebRTCConnections, if any	
@@ -160,6 +190,8 @@ func _on_socket_connection_failed():
 
 ## We created a lobby, we are the host, peer_id should be 1
 func _on_lobby_created(lobby_id: String, peer_id: int):
+	_lobby = lobby_id
+	_is_in_lobby = true
 	_peer_id = peer_id
 	_is_host = true
 	_rtc_mp.create_server() # we will act as multiplayer server
@@ -170,7 +202,7 @@ func _on_lobby_created(lobby_id: String, peer_id: int):
 ## We joined a lobby, relay lobby joined signal.
 func _on_lobby_joined(lobby_id: String, peer_id: int):
 	_peer_id = peer_id
-	_lobby_id = lobby_id
+	_lobby = lobby_id
 	_is_in_lobby = true
 	_rtc_mp.create_client(peer_id)  # actic as a client 
 	print("[Webstar] lobby %s joined as peer %d" % [lobby_id, peer_id])

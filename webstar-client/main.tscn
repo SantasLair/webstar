@@ -1,13 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://d0xkfsnp4if7t"]
+[gd_scene load_steps=2 format=3 uid="uid://d0xkfsnp4if7t"]
 
-[ext_resource type="Script" uid="uid://d4bl2kdlbq5ov" path="res://webstar/webstar_manager.gd" id="1_0xm2m"]
 [ext_resource type="Script" uid="uid://ge0ha75dw8o7" path="res://scripts/network_ui.gd" id="2_0xm2m"]
 
 [node name="Main" type="Node2D"]
-
-[node name="WebstarManager" type="Node" parent="."]
-unique_name_in_owner = true
-script = ExtResource("1_0xm2m")
 
 [node name="NetworkUI" type="Node2D" parent="."]
 script = ExtResource("2_0xm2m")
