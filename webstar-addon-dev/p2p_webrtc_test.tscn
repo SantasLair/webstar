@@ -1,7 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://cgq2j6pftggkj"]
-
-[ext_resource type="Script" uid="uid://cb51670vx87wi" path="res://test_scripts/p2p_webrtc_test.gd" id="1_l2esl"]
-
-
-[node name="P2PWebRTCTest" type="Node"]
-script = ExtResource("1_l2esl")

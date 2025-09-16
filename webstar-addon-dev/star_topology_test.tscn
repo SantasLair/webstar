@@ -1,7 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://covm3h5l4g8ky"]
-
-[ext_resource type="Script" uid="uid://cntx4rv37mhi4" path="res://test_scripts/star_topology_test.gd" id="1_8s0xd"]
-
-
-[node name="StarTopologyTest" type="Node"]
-script = ExtResource("1_8s0xd")

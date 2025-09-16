@@ -1,7 +1,0 @@
-[gd_scene load_steps=2 format=3]
-
-[ext_resource type="Script" uid="uid://dmuxfekw4ruut" path="res://test_scripts/builtin_webrtc_test.gd" id="1"]
-
-
-[node name="BuiltinWebRTCTest" type="Node"]
-script = ExtResource("1")

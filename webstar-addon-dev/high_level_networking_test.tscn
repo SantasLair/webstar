@@ -1,7 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://bcdyv1xlfqjl4"]
-
-[ext_resource type="Script" uid="uid://oqttkdxt7dnj" path="res://test_scripts/high_level_networking_test.gd" id="1_p5k7v"]
-
-
-[node name="HighLevelNetworkingTest" type="Node"]
-script = ExtResource("1_p5k7v")

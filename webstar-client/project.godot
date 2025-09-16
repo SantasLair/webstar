@@ -1,0 +1,12 @@
+config_version=5
+
+[application]
+
+config/name="Webstar Client"
+run/main_scene="uid://d0xkfsnp4if7t"
+config/features=PackedStringArray("4.4", "Forward Plus")
+config/icon="uid://dx03j8pfaoh3n"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/script-ide/plugin.cfg")

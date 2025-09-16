@@ -1,7 +1,0 @@
-[gd_scene load_steps=2 format=3]
-
-[ext_resource type="Script" uid="uid://chgob2aut4ade" path="res://test_scripts/multi_client_test.gd" id="1"]
-
-
-[node name="MultiClientTest" type="Node"]
-script = ExtResource("1")
