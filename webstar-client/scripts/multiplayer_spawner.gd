@@ -21,6 +21,8 @@ func spawn_player(id: int) -> void:
 	if multiplayer.get_unique_id() != 1 : return
 	
 	var player: Node = network_player.instantiate()
+	var xpos = 20 * id
+	player.position = Vector2(xpos, 60)
 	player.name = str(id)
 	
 	%Players.add_child(player)

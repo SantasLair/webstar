@@ -9,11 +9,11 @@ func _ready() -> void:
 
 
 func _on_host_button_pressed() -> void:
-	Webstar.create_lobby("demo-knights", 32, true)
+	Webstar.create_lobby($GameNameEdit.text, 32, true)
 	
 
 func _on_join_button_pressed() -> void:
-	Webstar.join_lobby("demo-knights")
+	Webstar.join_lobby($GameNameEdit.text)
 
 
 func _lobby_created(lobbyId: String, peerId: int) -> void:

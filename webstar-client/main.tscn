@@ -20,18 +20,27 @@ network_player = ExtResource("2_h2yge")
 script = ExtResource("3_h2yge")
 
 [node name="HostButton" type="Button" parent="UI"]
-offset_left = 5.0
-offset_top = 6.0
-offset_right = 79.0
-offset_bottom = 30.0
+offset_left = 116.0
+offset_top = 76.0
+offset_right = 190.0
+offset_bottom = 107.0
 text = "Host"
 
 [node name="JoinButton" type="Button" parent="UI"]
-offset_left = 5.0
-offset_top = 40.0
-offset_right = 79.0
-offset_bottom = 71.0
+offset_left = 117.0
+offset_top = 113.0
+offset_right = 191.0
+offset_bottom = 144.0
 text = "Join"
+
+[node name="GameNameEdit" type="LineEdit" parent="UI"]
+offset_left = 55.0
+offset_top = 31.0
+offset_right = 250.0
+offset_bottom = 62.0
+text = "knights-demo"
+placeholder_text = "game name"
+alignment = 1
 
 [connection signal="pressed" from="UI/HostButton" to="UI" method="_on_host_button_pressed"]
 [connection signal="pressed" from="UI/JoinButton" to="UI" method="_on_join_button_pressed"]
