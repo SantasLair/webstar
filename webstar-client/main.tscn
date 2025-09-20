@@ -1,72 +1,37 @@
-[gd_scene load_steps=2 format=3 uid="uid://d0xkfsnp4if7t"]
+[gd_scene load_steps=4 format=3 uid="uid://d0xkfsnp4if7t"]
 
-[ext_resource type="Script" uid="uid://ge0ha75dw8o7" path="res://scripts/network_ui.gd" id="2_0xm2m"]
+[ext_resource type="Script" uid="uid://d32mysyi1nv6a" path="res://scripts/multiplayer_spawner.gd" id="1_ig7tw"]
+[ext_resource type="PackedScene" uid="uid://bsw1n0fi4272a" path="res://game-objects/knight.tscn" id="2_h2yge"]
+[ext_resource type="Script" uid="uid://bj7amob3xdjmf" path="res://ui.gd" id="3_h2yge"]
 
 [node name="Main" type="Node2D"]
 
-[node name="NetworkUI" type="Node2D" parent="."]
-script = ExtResource("2_0xm2m")
-
-[node name="HostButton" type="Button" parent="NetworkUI"]
-offset_left = 254.0
-offset_top = 150.0
-offset_right = 463.0
-offset_bottom = 228.0
-text = "Create Lobby (Host)"
-
-[node name="JoinButton" type="Button" parent="NetworkUI"]
-offset_left = 516.0
-offset_top = 149.0
-offset_right = 725.0
-offset_bottom = 227.0
-text = "Join Lobby (Client)"
-
-[node name="LeaveButton" type="Button" parent="NetworkUI"]
-offset_left = 762.0
-offset_top = 149.0
-offset_right = 971.0
-offset_bottom = 227.0
-text = "Leave (disconnect)
-"
-
-[node name="LobbyText" type="LineEdit" parent="NetworkUI"]
+[node name="Players" type="Node2D" parent="."]
 unique_name_in_owner = true
-offset_left = 515.0
-offset_top = 45.0
-offset_right = 842.0
-offset_bottom = 87.0
-text = "multiplayer test-game"
-alignment = 1
 
-[node name="Label" type="Label" parent="NetworkUI"]
-offset_left = 384.0
-offset_top = 54.0
-offset_right = 486.0
-offset_bottom = 77.0
-text = "Lobby Name:"
+[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="."]
+unique_name_in_owner = true
+_spawnable_scenes = PackedStringArray("uid://bsw1n0fi4272a")
+spawn_path = NodePath("../Players")
+script = ExtResource("1_ig7tw")
+network_player = ExtResource("2_h2yge")
 
-[node name="SendButton" type="Button" parent="NetworkUI"]
-offset_left = 829.0
-offset_top = 539.0
-offset_right = 1022.0
-offset_bottom = 588.0
-text = "Send"
+[node name="UI" type="CanvasLayer" parent="."]
+script = ExtResource("3_h2yge")
 
-[node name="ChatBox" type="TextEdit" parent="NetworkUI"]
-offset_left = 120.0
-offset_top = 324.0
-offset_right = 1014.0
-offset_bottom = 512.0
-editable = false
-scroll_smooth = true
+[node name="HostButton" type="Button" parent="UI"]
+offset_left = 5.0
+offset_top = 6.0
+offset_right = 79.0
+offset_bottom = 30.0
+text = "Host"
 
-[node name="MessageText" type="LineEdit" parent="NetworkUI"]
-offset_left = 128.0
-offset_top = 539.0
-offset_right = 787.0
-offset_bottom = 583.0
+[node name="JoinButton" type="Button" parent="UI"]
+offset_left = 5.0
+offset_top = 40.0
+offset_right = 79.0
+offset_bottom = 71.0
+text = "Join"
 
-[connection signal="pressed" from="NetworkUI/HostButton" to="NetworkUI" method="_on_host_button_pressed"]
-[connection signal="pressed" from="NetworkUI/JoinButton" to="NetworkUI" method="_on_join_button_pressed"]
-[connection signal="pressed" from="NetworkUI/LeaveButton" to="NetworkUI" method="_on_leave_button_pressed"]
-[connection signal="pressed" from="NetworkUI/SendButton" to="NetworkUI" method="_on_send_button_pressed"]
+[connection signal="pressed" from="UI/HostButton" to="UI" method="_on_host_button_pressed"]
+[connection signal="pressed" from="UI/JoinButton" to="UI" method="_on_join_button_pressed"]

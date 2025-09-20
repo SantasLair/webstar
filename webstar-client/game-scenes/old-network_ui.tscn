@@ -1,0 +1,71 @@
+[gd_scene load_steps=2 format=3 uid="uid://dmsfn3toucgjw"]
+
+[ext_resource type="Script" uid="uid://ge0ha75dw8o7" path="res://scripts/network_ui.gd" id="1_fhou4"]
+
+[node name="NetworkUI" type="Node2D"]
+visible = false
+script = ExtResource("1_fhou4")
+
+[node name="HostButton" type="Button" parent="."]
+offset_left = 254.0
+offset_top = 150.0
+offset_right = 463.0
+offset_bottom = 228.0
+text = "Create Lobby (Host)"
+
+[node name="JoinButton" type="Button" parent="."]
+offset_left = 516.0
+offset_top = 149.0
+offset_right = 725.0
+offset_bottom = 227.0
+text = "Join Lobby (Client)"
+
+[node name="LeaveButton" type="Button" parent="."]
+offset_left = 762.0
+offset_top = 149.0
+offset_right = 971.0
+offset_bottom = 227.0
+text = "Leave (disconnect)
+"
+
+[node name="LobbyText" type="LineEdit" parent="."]
+unique_name_in_owner = true
+offset_left = 515.0
+offset_top = 45.0
+offset_right = 842.0
+offset_bottom = 87.0
+text = "multiplayer test-game"
+alignment = 1
+
+[node name="Label" type="Label" parent="."]
+offset_left = 384.0
+offset_top = 54.0
+offset_right = 486.0
+offset_bottom = 77.0
+text = "Lobby Name:"
+
+[node name="SendButton" type="Button" parent="."]
+offset_left = 829.0
+offset_top = 539.0
+offset_right = 1022.0
+offset_bottom = 588.0
+text = "Send"
+
+[node name="ChatBox" type="TextEdit" parent="."]
+offset_left = 120.0
+offset_top = 324.0
+offset_right = 1014.0
+offset_bottom = 512.0
+editable = false
+scroll_smooth = true
+
+[node name="MessageText" type="LineEdit" parent="."]
+offset_left = 128.0
+offset_top = 539.0
+offset_right = 787.0
+offset_bottom = 583.0
+
+[connection signal="pressed" from="HostButton" to="." method="_on_host_button_pressed"]
+[connection signal="pressed" from="JoinButton" to="." method="_on_join_button_pressed"]
+[connection signal="pressed" from="LeaveButton" to="." method="_on_leave_button_pressed"]
+[connection signal="pressed" from="SendButton" to="." method="_on_send_button_pressed"]
