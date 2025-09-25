@@ -4,8 +4,7 @@ extends CanvasLayer
 func _ready() -> void:
 	Webstar.lobby_created.connect(_lobby_created)
 	Webstar.lobby_joined.connect(_lobby_joined)
-	
-	await Webstar.connect_to_lobby_server()
+			
 
 
 func _on_host_button_pressed() -> void:
@@ -17,7 +16,6 @@ func _on_join_button_pressed() -> void:
 
 
 func _lobby_created(lobbyId: String, peerId: int) -> void:
-	%MultiplayerSpawner.spawn(1)
 	visible = false
 
 

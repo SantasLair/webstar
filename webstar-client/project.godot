@@ -12,12 +12,13 @@ config_version=5
 
 config/name="Webstar Client"
 run/main_scene="uid://d0xkfsnp4if7t"
-config/features=PackedStringArray("4.4", "Forward Plus")
+config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="uid://dx03j8pfaoh3n"
 
 [autoload]
 
 Webstar="*res://addons/webstar_networking/webstar.gd"
+NetworkManager="*res://scripts/autoload/network_manager.gd"
 
 [display]
 

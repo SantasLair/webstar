@@ -3,90 +3,40 @@ extends Node
 var server_address = "127.0.0.1"
 var server_port = 5090
 var use_enet = false  # Set to false to use WebStar, true to use ENet
+var lobby_name = "client-server-knights"
 
 signal lobby_created
 signal lobby_joined
 
 
-# WebStar specific settings
-var webstar: WebstarManager = null
-var status = ""
 
 func _ready():
+	# not sure if need this, leaving it for now
 	multiplayer.peer_connected.connect(_on_player_connected)
 	multiplayer.peer_disconnected.connect(_on_player_disconnected)
 	multiplayer.connection_failed.connect(_on_connected_fail)
 	multiplayer.server_disconnected.connect(_on_server_disconnected)
 	
-	# Initialize WebStar if not using ENet
-	if not use_enet:
-		webstar = %WebstarManager
-		webstar.lobby_created.connect(_on_lobby_created)
-		webstar.connect_to_signaling_server_async()
+	# connect to the lobby server
+	# todo: handle errors.  should retry?  if so, how many times to retry, etc?
+	await Webstar.connect_to_lobby_server()
+	
+	
+	# when running a dedicated server, connect to signal-server and create a lobby
+	# the lobby will be used to detect when peers join so that we can initiate WebRTC them
+	# todo: get lobby name from command-line
+	if DisplayServer.get_name() == "headless":
+		print("starting headless server, creating lobby: %s" % lobby_name)
+		Webstar.create_lobby(lobby_name, 32, true)
+	
+	
 
 # =============================================================================
 # Public Methods
-# =============================================================================
+# =============================================================================		
 
-## Create a lobby
-##
-## emits signal lobby_created 
-# todo: add error handling, create_lobby_failed
-func create_lobby(lobby_name):
-	print("creating lobby %s" % [lobby_name])
-	
-	if use_enet:
-		# ENet implementation
-		var peer = ENetMultiplayerPeer.new()
-		var error = peer.create_server(server_port, 32)
-		if error:
-			print("error creating lobby")
-		else:
-			multiplayer.multiplayer_peer = peer
-			status = "created lobby"
-			print("lobby created")
-	else:		
-		webstar.create_lobby(lobby_name, 8, false)
-		
 
-## Join a lobby
-##
-## emits signal lobby_joined
-# todo: add error handling, lobby_join_failed
-func join_lobby(lobby_name):
-	print("joining lobby %s" % [lobby_name])
 	
-	if use_enet:
-		# ENet implementation
-		var peer = ENetMultiplayerPeer.new()
-		var error = peer.create_client(server_address, server_port)
-		if error:
-			print("error connecting to lobby")
-		else:
-			multiplayer.multiplayer_peer = peer
-			status = "connecting to lobby"
-	else:		
-		status = "joining WebStar lobby..."
-		var success = await webstar.join_lobby(lobby_name)
-		if success:
-			status = "joined WebStar lobby - waiting for WebRTC"
-			print("WebStar lobby joined, waiting for WebRTC connections")
-		else:
-			status = "WebStar join failed"
-			print("ERROR: Failed to join WebStar lobby")
-	
-	
-func leave():
-	if use_enet:
-		# ENet cleanup
-		multiplayer.multiplayer_peer = null
-	else:
-		webstar.leave_lobby()
-		multiplayer.multiplayer_peer = null
-	
-	status = ""
-	%NetworkUI._update_controls()
-
 	
 # =============================================================================
 # Signal Handlers
@@ -107,12 +57,10 @@ func _on_player_disconnected(id):
 
 func _on_connected_fail():
 	print("connection failed")
-	status = ""
 	
 
 func _on_server_disconnected():
 	print("server disconnected")
-	status = ""
 	
 
 # WebStar event handlers
@@ -140,7 +88,6 @@ func _on_webstar_player_left(player_id: int):
 
 func _on_webstar_connection_failed(reason: String):
 	print("WebStar connection failed: %s" % reason)
-	status = ""
 
 
 func _on_webrtc_connection_state_changed(player_id: int, state: String):
