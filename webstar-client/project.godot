@@ -12,7 +12,7 @@ config_version=5
 
 config/name="Webstar Client"
 run/main_scene="uid://d0xkfsnp4if7t"
-config/features=PackedStringArray("4.5", "Forward Plus")
+config/features=PackedStringArray("4.5", "C#", "Forward Plus")
 config/icon="uid://dx03j8pfaoh3n"
 
 [autoload]
@@ -27,6 +27,10 @@ window/size/viewport_height=180
 window/size/window_width_override=1280
 window/size/window_height_override=720
 window/stretch/mode="viewport"
+
+[dotnet]
+
+project/assembly_name="Webstar Client"
 
 [editor_plugins]
 
