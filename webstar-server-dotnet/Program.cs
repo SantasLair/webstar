@@ -63,6 +63,23 @@ app.MapGet("/lobbies", () =>
         });
 });
 
+// Dashboard lobbies endpoint - returns all active lobbies
+app.MapGet("/api/lobbies", () =>
+{
+    return lobbies.Values
+        .Select(l => new
+        {
+            id = l.Id,
+            name = l.Name,
+            playerCount = l.Peers.Count,
+            maxPlayers = l.MaxPlayers,
+            host = l.HostId,
+            isPublic = l.IsPublic,
+            isFull = l.IsFull
+        })
+        .OrderByDescending(l => l.playerCount);
+});
+
 // WebSocket endpoint
 app.UseWebSockets(new WebSocketOptions
 {
@@ -132,6 +149,7 @@ async Task HandleWebSocketConnection(WebSocket webSocket, HttpContext context)
             else if (result.MessageType == WebSocketMessageType.Text)
             {
                 var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                Console.WriteLine($"Received text message from {clientId}: {message}");
                 await HandleMessage(webSocket, clientInfo, message);
             }
         }
@@ -230,15 +248,20 @@ async Task SendError(WebSocket webSocket, string error)
 
 async Task HandleCreateLobby(WebSocket webSocket, Peer peer, JsonElement message)
 {
-    var lobbyId = message.TryGetProperty("lobbyId", out var lobbyIdProperty) ? lobbyIdProperty.GetString() : GenerateLobbyId();
+    var lobbyId = message.TryGetProperty("lobbyId", out var lobbyIdProperty) ? lobbyIdProperty.GetString() : null;
     var maxPlayers = message.TryGetProperty("maxPlayers", out var maxProperty) ? maxProperty.GetInt32() : 8;
     var isPublic = message.TryGetProperty("isPublic", out var publicProperty) ? publicProperty.GetBoolean() : true;
     
-    lobbyId ??= GenerateLobbyId();
+    // Ensure we have a valid lobby ID
+    if (string.IsNullOrEmpty(lobbyId))
+    {
+        lobbyId = GenerateLobbyId();
+    }
 
     var lobby = new Lobby
     {
-        Id = lobbyId ?? GenerateLobbyId(),
+        Id = lobbyId,
+        Name = lobbyId, // Use lobbyId as the name if no name is provided
         MaxPlayers = maxPlayers,
         IsPublic = isPublic,
         HostId = peer.Id,
@@ -247,9 +270,9 @@ async Task HandleCreateLobby(WebSocket webSocket, Peer peer, JsonElement message
 
     lobby.Peers[peer.Id] = peer;
     peer.PeerId = 1; // Host is always PeerId 1
-    peer.LobbyId = lobbyId;
+    peer.LobbyId = lobbyId; // Now guaranteed to be non-null
 
-    lobbies[lobbyId!] = lobby;
+    lobbies[lobbyId] = lobby;
 
     await SendMessage(webSocket, new
     {
@@ -265,8 +288,11 @@ async Task HandleCreateLobby(WebSocket webSocket, Peer peer, JsonElement message
 async Task HandleJoinLobby(WebSocket webSocket, Peer peer, JsonElement message)
 {
     var lobbyId = message.TryGetProperty("lobbyId", out var lobbyIdProperty) ? lobbyIdProperty.GetString() : null;
+    Console.WriteLine($"[JoinLobby] Received join request from {peer.Id} for lobby {lobbyId}");
+    
     if (lobbyId is null)
     {
+        Console.WriteLine("[JoinLobby] ERROR: No lobbyId provided");
         await SendError(webSocket, "No lobbyId provided");
         return;
     }
@@ -274,20 +300,28 @@ async Task HandleJoinLobby(WebSocket webSocket, Peer peer, JsonElement message)
     var lobby = lobbies.TryGetValue(lobbyId, out var lobbyValue) ? lobbyValue : null;
     if (lobby is null)
     {
+        Console.WriteLine($"[JoinLobby] ERROR: Lobby '{lobbyId}' not found. Available lobbies: {string.Join(", ", lobbies.Keys)}");
         await SendError(webSocket, "Lobby not found");
         return;
     }
     
+    Console.WriteLine($"[JoinLobby] Found lobby '{lobbyId}' with {lobby.Peers.Count} current players");
+    
     if (lobby.IsFull)
     {
+        Console.WriteLine($"[JoinLobby] ERROR: Lobby is full ({lobby.Peers.Count}/{lobby.MaxPlayers})");
         await SendError(webSocket, "Lobby is full");
         return;
     }
 
-
-    lobby.Peers[peer.Id] = peer;
+    // Assign peer ID before adding to dictionary
     peer.PeerId = lobby.NextPeerId++;
     peer.LobbyId = lobbyId;
+    
+    // Add peer to lobby
+    lobby.Peers[peer.Id] = peer;
+    
+    Console.WriteLine($"[JoinLobby] SUCCESS: Client {peer.Id} joined lobby {lobbyId} as peerId {peer.PeerId}. Lobby now has {lobby.Peers.Count} players");
         
     await SendMessage(webSocket, new
     {
@@ -296,15 +330,12 @@ async Task HandleJoinLobby(WebSocket webSocket, Peer peer, JsonElement message)
         peerId = peer.PeerId,
     });
 
-    // Notify all players in lobby
-    await BroadcastToLobby(lobby.Peers[peer.Id].PeerId, lobby, new
+    // Notify all players in lobby about the new peer
+    await BroadcastToLobby(peer.PeerId, lobby, new
     {
         type = "peer_joined",
-        peerId = lobby.Peers[peer.Id].PeerId
+        peerId = peer.PeerId
     });
-
-
-    Console.WriteLine($"Client {peer.Id} joined lobby {lobbyId}");
 }
 
 async Task HandleLeaveLobby(WebSocket webSocket, Peer clientInfo)
