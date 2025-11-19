@@ -1,3 +1,14 @@
+> **📰 WebStar Project Status Update (Nov 2025)**
+> 
+> **Important:** This repository will no longer be updated.
+> 
+> - WebStar is being enhanced to support more clients than just GameMaker and is becoming part of GameFyber.com.
+> - The new client, based on this codebase, will be proprietary. This means future development will occur in private and updates will be available on [GameFyber.com](https://gamefyber.com).
+> - This repository remains free and open source for any who wish to use the existing code.
+> - For future news and updates, please visit [GameFyber.com](https://gamefyber.com).
+>
+> Thank you to everyone who contributed and benefited from WebStar!
+
 # WebStar 🌟
 
 ## 🚀 **MVP Status: FUNCTIONAL** 
